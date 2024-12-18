@@ -6,11 +6,42 @@ const API_URL = 'http://localhost:5001/api';
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 30000,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 });
+
+// Add request interceptor for debugging
+axiosInstance.interceptors.request.use(request => {
+  console.log('Starting Request:', {
+    method: request.method,
+    url: request.url,
+    baseURL: request.baseURL,
+    headers: request.headers
+  });
+  return request;
+});
+
+// Add response interceptor for debugging
+axiosInstance.interceptors.response.use(
+  response => {
+    console.log('Response:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
+    return response;
+  },
+  error => {
+    console.error('Response Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
+    throw error;
+  }
+);
 
 // Test the server connection
 const testConnection = async () => {
@@ -72,15 +103,11 @@ const api = {
     const config = {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      timeout: 45000
     };
 
-    const updatedFormData = new FormData();
-    Object.keys(formData).forEach(key => {
-      updatedFormData.append(key, formData[key]);
-    });
-
-    return axios.put(`${API_URL}/products/${id}`, updatedFormData, config);
+    return axiosInstance.put(`/products/${id}`, formData, config);
   },
   deleteProduct: async (id) => {
     const isConnected = await testConnection();
@@ -89,12 +116,75 @@ const api = {
     }
     return axiosInstance.delete(`/products/${id}`);
   },
+
+  // Categories
+  getCategories: async () => {
+    try {
+      console.log('Making request to /categories endpoint');
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        throw new Error('Cannot connect to server. Please check if the server is running.');
+      }
+      console.log('Server connection verified, fetching categories...');
+      const response = await axiosInstance.get('/categories');
+      console.log('Categories response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get categories:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      throw error;
+    }
+  },
   
+  addCategory: async (category) => {
+    try {
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        throw new Error('Cannot connect to server. Please check if the server is running.');
+      }
+      const response = await axiosInstance.post('/categories', category);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to add category:', error.message);
+      throw error;
+    }
+  },
+  
+  updateCategory: async (id, category) => {
+    try {
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        throw new Error('Cannot connect to server. Please check if the server is running.');
+      }
+      const response = await axiosInstance.put(`/categories/${id}`, category);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update category:', error.message);
+      throw error;
+    }
+  },
+  
+  deleteCategory: async (id) => {
+    try {
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        throw new Error('Cannot connect to server. Please check if the server is running.');
+      }
+      const response = await axiosInstance.delete(`/categories/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete category:', error.message);
+      throw error;
+    }
+  },
+
   // Stores
   getStores: () => axiosInstance.get('/stores'),
   addStore: (store) => axiosInstance.post('/stores', store),
-  addStoreOrder: (storeId, orderAmount) => 
-    axiosInstance.post(`/stores/${storeId}/order`, { orderAmount })
+  addStoreOrder: (storeId, orderAmount) => axiosInstance.post(`/stores/${storeId}/orders`, { amount: orderAmount }),
 };
 
 export default api;

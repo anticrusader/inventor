@@ -30,6 +30,7 @@ import Attributes from './pages/Attributes';
 import AttributesValue from './pages/AttributesValue';
 import AddAttributes from './pages/AddAttributes';
 import Reports from './pages/Reports';
+import Categories from './pages/Categories';
 
 const theme = createTheme({
   palette: {
@@ -179,6 +180,7 @@ function App() {
             <Route path="/add-brand" element={<AddBrand />} />
             <Route path="/category" element={<Category />} />
             <Route path="/add-category" element={<AddCategory />} />
+            <Route path="/categories" element={<Categories />} />
             <Route path="/company" element={<Company />} />
             <Route path="/add-company" element={<AddCompany />} />
             <Route path="/profile" element={<Profile />} />

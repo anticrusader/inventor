@@ -10,6 +10,9 @@ import {
   MenuItem,
   CircularProgress,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
 } from '@mui/material';
 import ImageUpload from '../components/ImageUpload';
 import api from '../services/api';
@@ -21,7 +24,8 @@ const EditProduct = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-
+  const [categories, setCategories] = useState([]);
+  
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -34,28 +38,43 @@ const EditProduct = () => {
   });
 
   useEffect(() => {
-    const loadProduct = async () => {
+    const loadData = async () => {
       try {
-        const response = await api.getProduct(id);
-        const product = response.data;
+        setLoading(true);
+        setError(null);
+        
+        // Load categories first
+        const categoriesData = await api.getCategories();
+        console.log('Loaded categories:', categoriesData);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+
+        // Then load product data
+        const productResponse = await api.getProduct(id);
+        const product = productResponse.data;
         
         setFormData({
-          ...product,
-          images: product.images?.map(img => ({
+          name: product.name || '',
+          price: product.price || '',
+          quantity: product.quantity || '',
+          category: product.category || '',
+          description: product.description || '',
+          status: product.status || 'active',
+          sku: product.sku || '',
+          images: product.images ? product.images.map(img => ({
             name: img,
-            url: `${process.env.REACT_APP_API_URL}/uploads/products/${img}`,
+            url: `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/uploads/products/${img}`,
             isExisting: true
-          })) || []
+          })) : []
         });
-      } catch (error) {
-        setError('Failed to load product');
-        console.error('Error loading product:', error);
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError(err.message || 'Failed to load product data');
       } finally {
         setLoading(false);
       }
     };
 
-    loadProduct();
+    loadData();
   }, [id]);
 
   const handleInputChange = (e) => {
@@ -81,33 +100,46 @@ const EditProduct = () => {
 
     try {
       const data = new FormData();
+      
+      // Add all non-image fields
       Object.keys(formData).forEach(key => {
         if (key !== 'images') {
           data.append(key, formData[key]);
         }
       });
 
-      // Handle existing and new images
+      // Handle existing images
       const existingImages = formData.images
         .filter(img => img.isExisting)
         .map(img => img.name);
+      
       data.append('existingImages', JSON.stringify(existingImages));
 
-      const newImages = formData.images.filter(img => !img.isExisting);
-      newImages.forEach(img => {
-        if (img.file) {
+      // Add new image files
+      formData.images
+        .filter(img => !img.isExisting && img.file)
+        .forEach(img => {
           data.append('images', img.file);
-        }
-      });
+        });
 
-      await api.updateProduct(id, data);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/products', { state: { refresh: true } });
-      }, 1500);
+      console.log('Submitting form data:');
+      console.log('- Existing images:', existingImages);
+      console.log('- Form fields:', Object.fromEntries(data.entries()));
+
+      const response = await api.updateProduct(id, data);
+      console.log('Update response:', response.data);
+      
+      if (response.data) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/products', { state: { refresh: true } });
+        }, 1500);
+      } else {
+        throw new Error('No response data received');
+      }
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to update product');
       console.error('Error updating product:', error);
+      setError(error.response?.data?.message || 'Failed to update product');
     } finally {
       setSaving(false);
     }
@@ -175,14 +207,22 @@ const EditProduct = () => {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                required
-                fullWidth
-                label="Category"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-              />
+              <FormControl fullWidth required error={!formData.category}>
+                <InputLabel id="category-label">Category</InputLabel>
+                <Select
+                  labelId="category-label"
+                  label="Category"
+                  name="category"
+                  value={formData.category || ''}
+                  onChange={handleInputChange}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category._id} value={category.name}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -196,17 +236,19 @@ const EditProduct = () => {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Status"
-                name="status"
-                select
-                value={formData.status}
-                onChange={handleInputChange}
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-              </TextField>
+              <FormControl fullWidth required error={!formData.status}>
+                <InputLabel id="status-label">Status</InputLabel>
+                <Select
+                  labelId="status-label"
+                  label="Status"
+                  name="status"
+                  value={formData.status || ''}
+                  onChange={handleInputChange}
+                >
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="inactive">Inactive</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField

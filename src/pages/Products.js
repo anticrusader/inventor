@@ -127,23 +127,31 @@ const Products = () => {
   // Filter and search products
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
+      // Search filter
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase());
       
-      let matchesFilter = true;
-      if (filterType === 'total') {
-        matchesFilter = true;
-      } else if (filterType === 'active') {
-        matchesFilter = product.status.toLowerCase() === 'active';
-      } else if (filterType === 'deactive') {
-        matchesFilter = product.status.toLowerCase() === 'deactive';
-      } else if (outOfStock) {
-        matchesFilter = product.quantity === 0;
+      // Status filter
+      let matchesStatus = true;
+      if (filterStatus !== 'all') {
+        matchesStatus = product.status.toLowerCase() === filterStatus;
       }
       
-      return matchesSearch && matchesFilter;
+      // Type filter
+      let matchesType = true;
+      if (filterType === 'total') {
+        matchesType = true;
+      } else if (filterType === 'active') {
+        matchesType = product.status.toLowerCase() === 'active';
+      } else if (filterType === 'inactive') {
+        matchesType = product.status.toLowerCase() === 'inactive';
+      } else if (outOfStock) {
+        matchesType = product.quantity === 0;
+      }
+      
+      return matchesSearch && matchesStatus && matchesType;
     });
-  }, [products, searchQuery, filterType, outOfStock]);
+  }, [products, searchQuery, filterStatus, filterType, outOfStock]);
 
   // Calculate pagination
   const paginatedProducts = useMemo(() => {
@@ -187,10 +195,10 @@ const Products = () => {
       inactiveColor: '#1a1f2d'
     },
     {
-      title: 'Deactive Products',
-      count: products.filter(p => p.status.toLowerCase() === 'deactive').length,
+      title: 'Inactive Products',
+      count: products.filter(p => p.status.toLowerCase() === 'inactive').length,
       change: '-0.8% Since last week',
-      filterValue: 'deactive',
+      filterValue: 'inactive',
       activeColor: '#1976d2',
       inactiveColor: '#1a1f2d'
     }
@@ -316,24 +324,36 @@ const Products = () => {
         }}>
           <Button
             variant={filterStatus === 'all' ? 'contained' : 'outlined'}
-            onClick={() => setFilterStatus('all')}
+            onClick={() => {
+              setFilterStatus('all');
+              setFilterType(null);
+              setOutOfStock(false);
+            }}
             color="primary"
           >
             All
           </Button>
           <Button
             variant={filterStatus === 'active' ? 'contained' : 'outlined'}
-            onClick={() => setFilterStatus('active')}
+            onClick={() => {
+              setFilterStatus('active');
+              setFilterType(null);
+              setOutOfStock(false);
+            }}
             color="primary"
           >
             Active
           </Button>
           <Button
-            variant={filterStatus === 'deactive' ? 'contained' : 'outlined'}
-            onClick={() => setFilterStatus('deactive')}
+            variant={filterStatus === 'inactive' ? 'contained' : 'outlined'}
+            onClick={() => {
+              setFilterStatus('inactive');
+              setFilterType(null);
+              setOutOfStock(false);
+            }}
             color="primary"
           >
-            Deactive
+            Inactive
           </Button>
         </Box>
       </Box>
@@ -419,9 +439,9 @@ const Products = () => {
                     <TableCell>{product.quantity}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={product.status}
-                        color={product.status === 'Active' ? 'success' : 'error'}
+                      <Chip 
+                        label={product.status} 
+                        color={product.status.toLowerCase() === 'active' ? 'success' : 'error'}
                         size="small"
                       />
                     </TableCell>

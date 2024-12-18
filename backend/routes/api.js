@@ -6,6 +6,21 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Store = require('../models/Store');
+const Category = require('../models/Category');
+
+// Add logging middleware
+router.use((req, res, next) => {
+  console.log('API Request:', {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    params: req.params,
+    query: req.query,
+    body: req.body
+  });
+  next();
+});
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '..', 'uploads', 'products');
@@ -149,7 +164,7 @@ router.post('/products', upload.array('images', 5), async (req, res) => {
       price: Number(req.body.price),
       quantity: Number(req.body.quantity),
       images: req.files ? req.files.map(file => file.filename) : [],
-      status: req.body.status || 'Active'
+      status: req.body.status || 'active'
     };
 
     console.log('Product data before save:', productData);
@@ -243,61 +258,53 @@ router.put('/products/:id', upload.array('images', 5), async (req, res) => {
     console.log('Update data:', updateData);
     console.log('Files:', req.files);
     
-    // Get the old product to handle image deletion
+    // Get the old product
     const oldProduct = await Product.findById(productId);
     if (!oldProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Parse existing images (if any)
+    // Parse existing images
     let existingImages = [];
     try {
-      existingImages = req.body.existingImages ? JSON.parse(req.body.existingImages) : [];
-      console.log('Existing images to keep:', existingImages);
+      existingImages = JSON.parse(req.body.existingImages || '[]');
+      console.log('Parsed existing images:', existingImages);
     } catch (error) {
       console.error('Error parsing existingImages:', error);
       return res.status(400).json({ message: 'Invalid existingImages format' });
     }
 
-    // Handle image deletion - remove files that are not in existingImages
-    if (oldProduct.images && oldProduct.images.length > 0) {
-      const imagesToDelete = oldProduct.images.filter(img => !existingImages.includes(img));
-      console.log('Images to delete:', imagesToDelete);
-      
-      for (const img of imagesToDelete) {
-        const imagePath = path.join(uploadDir, img);
-        console.log('Deleting image file:', imagePath);
-        try {
-          if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath);
-            console.log('Successfully deleted image file:', img);
-          }
-        } catch (error) {
-          console.error('Error deleting image file:', error);
+    // Delete removed images
+    const removedImages = oldProduct.images.filter(img => !existingImages.includes(img));
+    console.log('Removing images:', removedImages);
+    for (const img of removedImages) {
+      const imagePath = path.join(uploadDir, img);
+      try {
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+          console.log('Deleted image:', img);
         }
+      } catch (error) {
+        console.error('Error deleting image:', error);
       }
     }
 
-    // Add new uploaded images to existing ones
+    // Add new uploaded images
     const newImages = req.files ? req.files.map(file => file.filename) : [];
     console.log('New images:', newImages);
+
+    // Set the final images array
     updateData.images = [...existingImages, ...newImages];
     console.log('Final images array:', updateData.images);
 
-    // Convert string numbers to actual numbers
-    updateData.price = updateData.price ? Number(updateData.price) : oldProduct.price;
-    updateData.quantity = updateData.quantity ? Number(updateData.quantity) : oldProduct.quantity;
+    // Convert numeric fields
+    if (updateData.price) updateData.price = Number(updateData.price);
+    if (updateData.quantity) updateData.quantity = Number(updateData.quantity);
+    
+    // Update timestamp
     updateData.updatedAt = new Date();
 
-    // Ensure all required fields are present
-    const requiredFields = ['name', 'price', 'quantity', 'category', 'description'];
-    for (const field of requiredFields) {
-      if (!updateData[field] && updateData[field] !== 0) {
-        updateData[field] = oldProduct[field];
-      }
-    }
-
-    // Update the product with new data
+    // Update the product
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
       updateData,
@@ -308,20 +315,31 @@ router.put('/products/:id', upload.array('images', 5), async (req, res) => {
       throw new Error('Failed to update product');
     }
 
-    console.log('Updated product:', updatedProduct);
+    console.log('Product updated successfully:', updatedProduct);
     res.json(updatedProduct);
   } catch (error) {
     console.error('Error updating product:', error);
-    // Delete any newly uploaded files if update fails
+    
+    // Clean up any newly uploaded files if update fails
     if (req.files) {
       req.files.forEach(file => {
         const filePath = path.join(uploadDir, file.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        try {
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Cleaned up new file:', file.filename);
+          }
+        } catch (deleteError) {
+          console.error('Error cleaning up file:', deleteError);
         }
       });
     }
-    res.status(500).json({ message: 'Error updating product', error: error.message });
+    
+    res.status(500).json({ 
+      message: 'Error updating product', 
+      error: error.message,
+      details: error.errors || {} 
+    });
   }
 });
 
@@ -371,5 +389,136 @@ router.delete('/products/:id', async (req, res) => {
     });
   }
 });
+
+// Categories routes
+router.get('/categories', async (req, res) => {
+  try {
+    console.log('GET /categories endpoint hit');
+    let count = await Category.countDocuments();
+    console.log('Found categories count:', count);
+
+    // Create default categories if none exist
+    if (count === 0) {
+      console.log('Creating default categories...');
+      const defaultCategories = [
+        { name: 'Ring', description: 'Ring jewelry', status: 'active' },
+        { name: 'Necklace', description: 'Necklace jewelry', status: 'active' },
+        { name: 'Bracelet', description: 'Bracelet jewelry', status: 'active' },
+        { name: 'Earring', description: 'Earring jewelry', status: 'active' }
+      ];
+      await Category.insertMany(defaultCategories);
+      console.log('Default categories created');
+    }
+
+    const categories = await Category.find().sort('name');
+    console.log('Returning categories:', categories);
+    res.json(categories);
+  } catch (error) {
+    console.error('Error in GET /categories:', error);
+    res.status(500).json({ message: 'Error fetching categories', error: error.message });
+  }
+});
+
+router.post('/categories', async (req, res) => {
+  try {
+    console.log('Creating new category:', req.body);
+    const category = new Category(req.body);
+    await category.save();
+    res.status(201).json(category);
+  } catch (error) {
+    console.error('Error creating category:', error);
+    res.status(400).json({ message: 'Error creating category', error: error.message });
+  }
+});
+
+router.put('/categories/:id', async (req, res) => {
+  try {
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    res.json(category);
+  } catch (error) {
+    console.error('Error updating category:', error);
+    res.status(400).json({ message: 'Error updating category', error: error.message });
+  }
+});
+
+router.delete('/categories/:id', async (req, res) => {
+  try {
+    const category = await Category.findByIdAndDelete(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    res.json({ message: 'Category deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    res.status(500).json({ message: 'Error deleting category', error: error.message });
+  }
+});
+
+// Add some default categories if none exist
+const initializeCategories = async () => {
+  try {
+    console.log('Checking for existing categories...');
+    const count = await Category.countDocuments();
+    console.log(`Found ${count} existing categories`);
+
+    if (count === 0) {
+      console.log('No categories found. Creating default categories...');
+      const defaultCategories = [
+        { 
+          name: 'ring', 
+          description: 'Ring jewelry',
+          status: 'active'
+        },
+        { 
+          name: 'necklace', 
+          description: 'Necklace jewelry',
+          status: 'active'
+        },
+        { 
+          name: 'bracelet', 
+          description: 'Bracelet jewelry',
+          status: 'active'
+        },
+        { 
+          name: 'earring', 
+          description: 'Earring jewelry',
+          status: 'active'
+        },
+        { 
+          name: 'pendant', 
+          description: 'Pendant jewelry',
+          status: 'active'
+        }
+      ];
+
+      const result = await Category.insertMany(defaultCategories);
+      console.log(`Successfully created ${result.length} default categories`);
+    }
+  } catch (error) {
+    console.error('Error initializing categories:', error);
+    // Try to provide more specific error information
+    if (error.code === 11000) {
+      console.error('Duplicate category found:', error.keyValue);
+    }
+  }
+};
+
+// Make sure to call initialization when the router is loaded
+(async () => {
+  try {
+    console.log('Starting category initialization...');
+    await initializeCategories();
+    console.log('Category initialization completed');
+  } catch (error) {
+    console.error('Failed to initialize categories:', error);
+  }
+})();
 
 module.exports = router;
