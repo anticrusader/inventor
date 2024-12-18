@@ -53,11 +53,11 @@ const Products = () => {
         <Typography variant="h5">Products</Typography>
         <Button
           variant="contained"
-          startIcon={<ArrowForwardIcon />}
-          sx={{ borderRadius: '8px' }}
-          onClick={() => navigate('/products/add')}
+          sx={{ px: 3 }}
+          startIcon={<img src="/add-icon.svg" alt="" />}
+          onClick={() => navigate('/add-product')}
         >
-          Add Products
+          Add Product
         </Button>
       </Box>
 

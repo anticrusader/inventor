@@ -1,303 +1,305 @@
 import React, { useState } from 'react';
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
   Box,
-  IconButton,
-  Select,
-  MenuItem,
+  Container,
+  Typography,
+  Button,
+  TextField,
   Grid,
+  IconButton,
+  Stack,
+  Paper,
   InputAdornment,
 } from '@mui/material';
-import {
-  FormatBold,
-  FormatItalic,
-  FormatUnderlined,
-  FormatAlignLeft,
-  FormatAlignCenter,
-  FormatAlignRight,
-  FormatListBulleted,
-  Link,
-  Image,
-} from '@mui/icons-material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
+import FormatBoldIcon from '@mui/icons-material/FormatBold';
+import FormatItalicIcon from '@mui/icons-material/FormatItalic';
+import FormatUnderlinedIcon from '@mui/icons-material/FormatUnderlined';
+import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
+import FormatAlignCenterIcon from '@mui/icons-material/FormatAlignCenter';
+import FormatAlignRightIcon from '@mui/icons-material/FormatAlignRight';
+import LinkIcon from '@mui/icons-material/Link';
+import ImageIcon from '@mui/icons-material/Image';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 const AddProduct = () => {
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
-  const [mainImage, setMainImage] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
-  const handleImageDrop = (event) => {
-    event.preventDefault();
-    const files = Array.from(event.dataTransfer?.files || event.target.files);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
-    
-    if (imageFiles.length > 0) {
-      setMainImage(URL.createObjectURL(imageFiles[0]));
-      setImages(prev => [...prev, ...imageFiles.slice(1).map(file => URL.createObjectURL(file))]);
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
     }
   };
 
-  const handleDragOver = (event) => {
-    event.preventDefault();
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      // Handle file upload
+      const newImages = Array.from(e.dataTransfer.files).map(file => 
+        URL.createObjectURL(file)
+      );
+      setImages([...images, ...newImages]);
+    }
   };
 
-  const textEditorButtons = [
-    { icon: <FormatBold />, label: 'Bold' },
-    { icon: <FormatItalic />, label: 'Italic' },
-    { icon: <FormatUnderlined />, label: 'Underline' },
-    { icon: <FormatAlignLeft />, label: 'Align Left' },
-    { icon: <FormatAlignCenter />, label: 'Align Center' },
-    { icon: <FormatAlignRight />, label: 'Align Right' },
-    { icon: <FormatListBulleted />, label: 'List' },
-    { icon: <Link />, label: 'Link' },
-    { icon: <Image />, label: 'Image' },
-  ];
+  const handleFileInput = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const newImages = Array.from(e.target.files).map(file => 
+        URL.createObjectURL(file)
+      );
+      setImages([...images, ...newImages]);
+    }
+  };
+
+  const removeImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+  };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Add Products</Typography>
-      
-      <Grid container spacing={3}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+        <IconButton onClick={() => navigate('/products')} sx={{ mr: 2 }}>
+          <ArrowBackIcon />
+        </IconButton>
+        <Typography variant="h5" fontWeight="bold">
+          Add Products
+        </Typography>
+      </Box>
+
+      <Grid container spacing={4}>
+        {/* Left Column - Image Upload */}
         <Grid item xs={12} md={5}>
-          {/* Image Upload Section */}
-          <Paper
+          <Typography variant="subtitle1" sx={{ mb: 1 }}>Upload Image</Typography>
+          <Box
             sx={{
-              p: 2,
-              height: 300,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '2px dashed #ccc',
+              border: '2px dashed',
+              borderColor: dragActive ? 'primary.main' : 'grey.300',
+              borderRadius: 2,
+              p: 3,
+              textAlign: 'center',
+              bgcolor: 'grey.50',
               cursor: 'pointer',
-              position: 'relative',
-              mb: 2,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: 'primary.main',
+              },
             }}
-            onDrop={handleImageDrop}
-            onDragOver={handleDragOver}
-            component="label"
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById('file-input').click()}
           >
-            {mainImage ? (
-              <Box
-                component="img"
-                src={mainImage}
-                alt="Product"
-                sx={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  objectFit: 'contain'
-                }}
-              />
-            ) : (
-              <>
-                <Box
-                  component="img"
-                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E"
-                  alt="Upload"
-                  sx={{ width: 64, height: 64, mb: 2 }}
-                />
-                <Typography variant="body1" color="textSecondary">
-                  Drag & Drop file here
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  or click to browse
-                </Typography>
-              </>
-            )}
             <input
               type="file"
-              hidden
-              accept="image/*"
+              id="file-input"
               multiple
-              onChange={handleImageDrop}
+              accept="image/*"
+              onChange={handleFileInput}
+              style={{ display: 'none' }}
             />
-          </Paper>
+            <Box sx={{ mb: 2 }}>
+              <img src="/image-placeholder.svg" alt="Upload" style={{ width: 64, height: 64 }} />
+            </Box>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              Drag & Drop file here
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Or click to browse (4 mb max)
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+            Do Same size format such as Sales, number and USD($ etc) throughout
+          </Typography>
 
-          {/* Thumbnail Images */}
-          <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', py: 1 }}>
+          {/* Image Preview */}
+          <Stack direction="row" spacing={2} sx={{ mt: 3, overflowX: 'auto', py: 1 }}>
             {images.map((image, index) => (
               <Paper
                 key={index}
                 sx={{
+                  position: 'relative',
                   width: 80,
                   height: 80,
                   flexShrink: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                 }}
               >
-                <Box
-                  component="img"
+                <img
                   src={image}
-                  alt={`Thumbnail ${index + 1}`}
-                  sx={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain'
+                  alt={`Preview ${index + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: 8,
                   }}
                 />
+                <IconButton
+                  size="small"
+                  sx={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -8,
+                    bgcolor: 'background.paper',
+                    boxShadow: 1,
+                    '&:hover': { bgcolor: 'background.paper' },
+                  }}
+                  onClick={() => removeImage(index)}
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
               </Paper>
             ))}
-          </Box>
+          </Stack>
         </Grid>
 
+        {/* Right Column - Product Details */}
         <Grid item xs={12} md={7}>
-          {/* Product Details Form */}
-          <Paper sx={{ p: 3 }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Product Name"
-                  placeholder="Enter product name..."
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Price"
-                  placeholder="Enter price"
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="SKU"
-                  placeholder="Enter sku"
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Qty"
-                  placeholder="Enter qty"
-                  type="number"
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom>Description</Typography>
-                <Box sx={{ mb: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {textEditorButtons.map((button, index) => (
-                    <IconButton key={index} size="small">
-                      {button.icon}
-                    </IconButton>
-                  ))}
-                </Box>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  placeholder="Enter Description"
-                />
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Color"
-                  select
-                  defaultValue=""
-                >
-                  <MenuItem value="">Select Color</MenuItem>
-                  <MenuItem value="red">Red</MenuItem>
-                  <MenuItem value="blue">Blue</MenuItem>
-                  <MenuItem value="black">Black</MenuItem>
-                </TextField>
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Size"
-                  select
-                  defaultValue=""
-                >
-                  <MenuItem value="">Select Size</MenuItem>
-                  <MenuItem value="s">Small</MenuItem>
-                  <MenuItem value="m">Medium</MenuItem>
-                  <MenuItem value="l">Large</MenuItem>
-                </TextField>
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Brands"
-                  select
-                  defaultValue=""
-                >
-                  <MenuItem value="">Select Brand</MenuItem>
-                  <MenuItem value="nike">Nike</MenuItem>
-                  <MenuItem value="adidas">Adidas</MenuItem>
-                  <MenuItem value="puma">Puma</MenuItem>
-                </TextField>
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Category"
-                  select
-                  defaultValue=""
-                >
-                  <MenuItem value="">Select Category</MenuItem>
-                  <MenuItem value="shoes">Shoes</MenuItem>
-                  <MenuItem value="clothing">Clothing</MenuItem>
-                  <MenuItem value="accessories">Accessories</MenuItem>
-                </TextField>
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Store"
-                  select
-                  defaultValue=""
-                >
-                  <MenuItem value="">Select Store</MenuItem>
-                  <MenuItem value="store1">Store 1</MenuItem>
-                  <MenuItem value="store2">Store 2</MenuItem>
-                  <MenuItem value="store3">Store 3</MenuItem>
-                </TextField>
-              </Grid>
-
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Availability"
-                  select
-                  defaultValue=""
-                >
-                  <MenuItem value="">Select Availability</MenuItem>
-                  <MenuItem value="instock">In Stock</MenuItem>
-                  <MenuItem value="outofstock">Out of Stock</MenuItem>
-                </TextField>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                  <Button variant="outlined" onClick={() => navigate('/products')}>
-                    Cancel
-                  </Button>
-                  <Button variant="contained" color="primary">
-                    Publish Product
-                  </Button>
-                </Box>
-              </Grid>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Product Name"
+                placeholder="Enter product name..."
+              />
             </Grid>
-          </Paper>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Price"
+                placeholder="Enter price"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">$</InputAdornment>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="SKU"
+                placeholder="Enter sku"
+                select
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Qty"
+                placeholder="Enter qty"
+                select
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Description</Typography>
+              <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                <IconButton size="small">
+                  <FormatBoldIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <FormatItalicIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <FormatUnderlinedIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <FormatAlignLeftIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <FormatAlignCenterIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <FormatAlignRightIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <LinkIcon />
+                </IconButton>
+                <IconButton size="small">
+                  <ImageIcon />
+                </IconButton>
+              </Stack>
+              <TextField
+                fullWidth
+                placeholder="Enter Description"
+                multiline
+                rows={4}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Color"
+                placeholder="Enter Color"
+                select
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Size"
+                placeholder="Enter Size"
+                select
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Brands"
+                placeholder="Enter Brands"
+                select
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Category"
+                placeholder="Enter Category"
+                select
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Store"
+                placeholder="Enter Store"
+                select
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Availability"
+                placeholder="Enter Availability"
+                select
+              />
+            </Grid>
+          </Grid>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/products')}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              sx={{ px: 3 }}
+            >
+              Publish Product
+            </Button>
+          </Box>
         </Grid>
       </Grid>
     </Container>

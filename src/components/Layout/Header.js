@@ -11,6 +11,8 @@ import {
   Container,
   Collapse,
   ClickAwayListener,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -75,6 +77,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [moreAnchorEl, setMoreAnchorEl] = useState(null);
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -87,6 +90,95 @@ const Header = () => {
   const handleClickAway = () => {
     setIsSearchExpanded(false);
   };
+
+  const handleMoreClick = (event) => {
+    setMoreAnchorEl(event.currentTarget);
+  };
+
+  const handleMoreClose = () => {
+    setMoreAnchorEl(null);
+  };
+
+  const mainMenuItems = [
+    {
+      label: 'Dashboard',
+      path: '/',
+    },
+    {
+      label: 'Products',
+      path: '/products',
+      subItems: [
+        { label: 'Add Product', path: '/add-product' },
+        { label: 'Products Overview', path: '/products-overview' },
+      ],
+    },
+    {
+      label: 'Orders',
+      path: '/orders',
+      subItems: [
+        { label: 'Add Order', path: '/add-order' },
+      ],
+    },
+    {
+      label: 'Stores',
+      path: '/stores',
+      subItems: [
+        { label: 'Add Store', path: '/add-store' },
+        { label: 'Stores Overview', path: '/stores-overview' },
+      ],
+    },
+  ];
+
+  const moreMenuItems = [
+    {
+      label: 'Groups',
+      path: '/groups',
+      subItems: [
+        { label: 'Add Group', path: '/add-group' },
+        { label: 'Groups Permissions', path: '/groups-permissions' },
+      ],
+    },
+    {
+      label: 'Brand',
+      path: '/brand',
+      subItems: [
+        { label: 'Add Brand', path: '/add-brand' },
+      ],
+    },
+    {
+      label: 'Category',
+      path: '/category',
+      subItems: [
+        { label: 'Add Category', path: '/add-category' },
+      ],
+    },
+    {
+      label: 'Company',
+      path: '/company',
+      subItems: [
+        { label: 'Add Company', path: '/add-company' },
+      ],
+    },
+    {
+      label: 'Profile Settings',
+      path: '/profile-settings',
+      subItems: [
+        { label: 'Notification Management', path: '/notification-management' },
+      ],
+    },
+    {
+      label: 'Attributes',
+      path: '/attributes',
+      subItems: [
+        { label: 'Attributes Value', path: '/attributes-value' },
+        { label: 'Add Attributes', path: '/add-attributes' },
+      ],
+    },
+    {
+      label: 'Reports',
+      path: '/reports',
+    },
+  ];
 
   return (
     <AppBar position="static" color="default" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #eaeaea' }}>
@@ -116,36 +208,19 @@ const Header = () => {
             flex: 1,
             ml: '120px' // Space for logo
           }}>
-            <NavButton
-              active={isActive('/')}
-              onClick={() => navigate('/')}
-              startIcon={<img src="/dashboard-icon.svg" alt="" />}
-            >
-              Dashboard
-            </NavButton>
-            <NavButton
-              active={isActive('/products')}
-              onClick={() => navigate('/products')}
-              startIcon={<img src="/products-icon.svg" alt="" />}
-            >
-              Products
-            </NavButton>
-            <NavButton
-              active={isActive('/orders')}
-              onClick={() => navigate('/orders')}
-              startIcon={<img src="/orders-icon.svg" alt="" />}
-            >
-              Orders
-            </NavButton>
-            <NavButton
-              active={isActive('/stores')}
-              onClick={() => navigate('/stores')}
-              startIcon={<img src="/stores-icon.svg" alt="" />}
-            >
-              Stores
-            </NavButton>
+            {mainMenuItems.map((item) => (
+              <NavButton
+                key={item.path}
+                active={isActive(item.path)}
+                onClick={() => navigate(item.path)}
+                startIcon={<img src={`/icon-${item.label.toLowerCase()}.svg`} alt="" />}
+              >
+                {item.label}
+              </NavButton>
+            ))}
             <NavButton
               endIcon={<MoreHorizIcon />}
+              onClick={handleMoreClick}
             >
               More
             </NavButton>
@@ -179,10 +254,41 @@ const Header = () => {
               <NotificationsIcon />
             </IconButton>
 
-            <Avatar sx={{ cursor: 'pointer' }} />
+            <Avatar 
+              sx={{ cursor: 'pointer' }} 
+              onClick={() => navigate('/profile')}
+            />
           </Box>
         </Box>
       </Container>
+      <Menu
+        anchorEl={moreAnchorEl}
+        open={Boolean(moreAnchorEl)}
+        onClose={handleMoreClose}
+      >
+        {moreMenuItems.map((item) => (
+          <div key={item.path}>
+            <MenuItem onClick={() => {
+              navigate(item.path);
+              handleMoreClose();
+            }}>
+              {item.label}
+            </MenuItem>
+            {item.subItems && item.subItems.map((subItem) => (
+              <MenuItem
+                key={subItem.path}
+                onClick={() => {
+                  navigate(subItem.path);
+                  handleMoreClose();
+                }}
+                sx={{ pl: 4 }}
+              >
+                {subItem.label}
+              </MenuItem>
+            ))}
+          </div>
+        ))}
+      </Menu>
     </AppBar>
   );
 };
