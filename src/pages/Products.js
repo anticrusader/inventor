@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import api from '../services/api';
 import {
   Container,
   Grid,
@@ -17,44 +18,121 @@ import {
   Box,
   Chip,
   Pagination,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useNavigate } from 'react-router-dom';
-
-const productStats = [
-  { title: 'Total Products', count: '25,430', change: '+15% Since last week' },
-  { title: 'New Products', count: '20,120', change: '+12% Since last week' },
-  { title: 'Deactive Products', count: '15,650', change: '+13% Since last week' },
-  { title: 'Empty Products', count: '10,340', change: '+15% Since last week' },
-];
-
-const productsList = [
-  { id: 1, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 1', availability: 'Active' },
-  { id: 2, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 2', availability: 'Deactive' },
-  { id: 3, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 3', availability: 'Active' },
-  { id: 4, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 4', availability: 'Active' },
-  { id: 5, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 5', availability: 'Deactive' },
-  { id: 6, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 6', availability: 'Deactive' },
-  { id: 7, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 7', availability: 'Active' },
-  { id: 8, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 8', availability: 'Deactive' },
-  { id: 9, sku: 'T-Shirt', name: 'T-shirt-blue-small', category: 'T-Shirt', price: '$150', qty: 20, store: 'Store 9', availability: 'Active' },
-];
+import AddIcon from '@mui/icons-material/Add';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Products = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selected, setSelected] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterAvailability, setFilterAvailability] = useState('all');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.getProducts();
+        console.log('Fetched products:', response.data);
+        setProducts(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Filter and search products
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = filterAvailability === 'all' || product.status === filterAvailability;
+      return matchesSearch && matchesFilter;
+    });
+  }, [products, searchQuery, filterAvailability]);
+
+  // Calculate pagination
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (page - 1) * rowsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + rowsPerPage);
+  }, [filteredProducts, page]);
+
+  // Handle checkbox selection
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      setSelected(paginatedProducts.map(product => product._id));
+    } else {
+      setSelected([]);
+    }
+  };
+
+  const handleSelectOne = (event, id) => {
+    if (event.target.checked) {
+      setSelected([...selected, id]);
+    } else {
+      setSelected(selected.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  // Calculate product stats
+  const productStats = [
+    { 
+      title: 'Total Products', 
+      count: products.length, 
+      change: '+1.5% Since last week',
+      path: '/total-products'
+    },
+    { 
+      title: 'Active Products', 
+      count: products.filter(p => p.status === 'Active').length, 
+      change: '+1.5% Since last week',
+      path: '/active-products'
+    },
+    { 
+      title: 'Deactive Products', 
+      count: products.filter(p => p.status === 'Deactive').length, 
+      change: '+1.5% Since last week',
+      path: '/deactive-products'
+    },
+    { 
+      title: 'Out of Stock', 
+      count: products.filter(p => p.quantity === 0).length, 
+      change: '+1.5% Since last week',
+      path: '/out-of-stock'
+    },
+  ];
+
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Products</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h5" fontWeight="bold">
+          Products
+        </Typography>
         <Button
           variant="contained"
-          sx={{ px: 3 }}
-          startIcon={<img src="/add-icon.svg" alt="" />}
+          startIcon={<AddIcon />}
           onClick={() => navigate('/add-product')}
         >
           Add Product
@@ -65,14 +143,19 @@ const Products = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {productStats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
-            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', borderRadius: '12px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  {stat.title}
-                </Typography>
-                <ArrowForwardIcon fontSize="small" />
-              </Box>
-              <Typography variant="h4" sx={{ mb: 1 }}>
+            <Paper
+              sx={{
+                p: 3,
+                height: '100%',
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'action.hover' }
+              }}
+              onClick={() => navigate(stat.path)}
+            >
+              <Typography variant="subtitle2" color="textSecondary">
+                {stat.title}
+              </Typography>
+              <Typography variant="h4" sx={{ my: 1 }}>
                 {stat.count}
               </Typography>
               <Typography variant="body2" color="success.main">
@@ -83,100 +166,117 @@ const Products = () => {
         ))}
       </Grid>
 
-      {/* Products List Section */}
-      <Paper sx={{ p: 2, borderRadius: '12px' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Typography variant="h6">Products list</Typography>
-            <Chip label="All" variant="outlined" />
-            <Chip label="Active" variant="outlined" />
-            <Chip label="Sold" variant="outlined" />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              size="small"
-              placeholder="Search"
-              InputProps={{
-                startAdornment: <SearchIcon />,
-              }}
-            />
-            <Button
-              variant="outlined"
-              startIcon={<FilterListIcon />}
-            >
-              Filter
-            </Button>
-          </Box>
-        </Box>
+      {/* Filters */}
+      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+        <TextField
+          size="small"
+          placeholder="Search products..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ flexGrow: 1 }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />,
+          }}
+        />
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel>Availability</InputLabel>
+          <Select
+            value={filterAvailability}
+            onChange={(e) => setFilterAvailability(e.target.value)}
+            label="Availability"
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="Active">Active</MenuItem>
+            <MenuItem value="Deactive">Deactive</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
 
-        {/* Products Table */}
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox />
-                </TableCell>
-                <TableCell>Image</TableCell>
-                <TableCell>SKU</TableCell>
-                <TableCell>Product Name</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Qty</TableCell>
-                <TableCell>Store</TableCell>
-                <TableCell>Availability</TableCell>
-                <TableCell>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {productsList.map((product) => (
-                <TableRow key={product.id}>
+      {/* Products Table */}
+      {loading ? (
+        <Typography>Loading products...</Typography>
+      ) : error ? (
+        <Typography color="error">{error}</Typography>
+      ) : (
+        <>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
                   <TableCell padding="checkbox">
-                    <Checkbox />
-                  </TableCell>
-                  <TableCell>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        bgcolor: 'grey.200',
-                        borderRadius: 1
-                      }}
+                    <Checkbox
+                      checked={selected.length === paginatedProducts.length}
+                      indeterminate={selected.length > 0 && selected.length < paginatedProducts.length}
+                      onChange={handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>{product.sku}</TableCell>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.price}</TableCell>
-                  <TableCell>{product.qty}</TableCell>
-                  <TableCell>{product.store}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={product.availability}
-                      color={product.availability === 'Active' ? 'success' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton size="small">
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small">
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
+                  <TableCell>Product</TableCell>
+                  <TableCell>Price</TableCell>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {paginatedProducts.map((product) => (
+                  <TableRow key={product._id} hover>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selected.includes(product._id)}
+                        onChange={(e) => handleSelectOne(e, product._id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {product.images && product.images[0] && (
+                          <Box
+                            component="img"
+                            src={`http://localhost:5001/uploads/products/${product.images[0]}`}
+                            sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                          />
+                        )}
+                        <Box>
+                          <Typography variant="subtitle2">{product.name}</Typography>
+                          <Typography variant="body2" color="textSecondary">
+                            {product.description}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>${product.price}</TableCell>
+                    <TableCell>{product.quantity}</TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={product.status}
+                        color={product.status === 'Active' ? 'success' : 'error'}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <IconButton size="small" onClick={() => navigate(`/edit-product/${product._id}`)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton size="small" color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-        {/* Pagination */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-          <Typography variant="body2" color="textSecondary">
-            Show 50 items
-          </Typography>
-          <Pagination count={6} shape="rounded" />
-        </Box>
-      </Paper>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Pagination
+              count={Math.ceil(filteredProducts.length / rowsPerPage)}
+              page={page}
+              onChange={(e, newPage) => setPage(newPage)}
+            />
+          </Box>
+        </>
+      )}
     </Container>
   );
 };

@@ -31,122 +31,121 @@ import AddAttributes from './pages/AddAttributes';
 import Reports from './pages/Reports';
 
 const theme = createTheme({
-  typography: {
-    fontFamily: '"Space Grotesk", sans-serif',
-    h1: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
-    },
-    h2: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
-    },
-    h3: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
-    },
-    h4: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 500,
-    },
-    h5: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 500,
-    },
-    h6: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 500,
-    },
-    subtitle1: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 500,
-    },
-    subtitle2: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 500,
-    },
-    body1: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 400,
-    },
-    body2: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 400,
-    },
-    button: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 500,
-      textTransform: 'none',
-    },
-    caption: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 400,
-    },
-    overline: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 400,
-    },
-  },
   palette: {
+    mode: 'dark',
     primary: {
       main: '#00E074', // Primary green color
-      contrastText: '#fff',
+      light: '#00E074',
+      dark: '#00E074',
     },
     secondary: {
       main: '#00A6FF', // Secondary blue color
-      light: '#FF1474', // Secondary pink color
-      contrastText: '#fff',
+      light: '#00A6FF',
+      dark: '#00A6FF',
+    },
+    accent: {
+      main: '#FF1474', // Accent pink color
+      light: '#FF1474',
+      dark: '#FF1474',
     },
     button: {
       main: '#FE8A00', // Button orange color
-      contrastText: '#fff',
+      light: '#FE8A00',
+      dark: '#FE8A00',
     },
     background: {
-      default: '#fff',
-      paper: '#fff',
+      default: '#0B1120',
+      paper: '#1a2233',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: 'rgba(255, 255, 255, 0.7)',
+    },
+  },
+  typography: {
+    fontFamily: 'Space Grotesk, sans-serif',
+    h1: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+    },
+    h2: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+    },
+    h3: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+    },
+    h4: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+    },
+    h5: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+    },
+    h6: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+    },
+    subtitle1: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 500,
+    },
+    subtitle2: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 500,
+    },
+    body1: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 400,
+    },
+    body2: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 400,
+    },
+    button: {
+      fontFamily: 'Space Grotesk',
+      fontWeight: 500,
+      textTransform: 'none',
     },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
           borderRadius: 8,
-          fontFamily: '"Space Grotesk", sans-serif',
+          textTransform: 'none',
           fontWeight: 500,
         },
-        contained: {
+        containedPrimary: {
           backgroundColor: '#FE8A00',
-          color: '#fff',
           '&:hover': {
-            backgroundColor: '#e57c00',
-          },
-        },
-        outlined: {
-          borderColor: '#FE8A00',
-          color: '#FE8A00',
-          '&:hover': {
-            borderColor: '#e57c00',
-            color: '#e57c00',
+            backgroundColor: '#ff9a1f',
           },
         },
       },
     },
-    MuiAppBar: {
+    MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: '#00E074',
+          backgroundImage: 'none',
+          borderRadius: 16,
         },
       },
     },
-    MuiTab: {
+    MuiCard: {
       styleOverrides: {
         root: {
-          fontFamily: '"Space Grotesk", sans-serif',
-          fontWeight: 500,
-          '&.Mui-selected': {
-            color: '#00A6FF',
-          },
+          borderRadius: 16,
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          color: 'rgba(255, 255, 255, 0.7)',
         },
       },
     },
