@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Store = require('../models/Store');
 
@@ -18,8 +19,10 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    const timestamp = Date.now();
+    const randomNum = Math.round(Math.random() * 1E9);
+    const filename = `${timestamp}-${randomNum}${path.extname(file.originalname)}`;
+    cb(null, filename);
   }
 });
 
@@ -101,6 +104,25 @@ router.get('/dashboard/stats', async (req, res) => {
   }
 });
 
+// Get single product
+router.get('/products/:id', async (req, res) => {
+  try {
+    console.log('Fetching product:', req.params.id);
+    const product = await Product.findById(req.params.id);
+    
+    if (!product) {
+      console.log('Product not found:', req.params.id);
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    console.log('Found product:', product);
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ message: 'Error fetching product', error: error.message });
+  }
+});
+
 // Get all products
 router.get('/products', async (req, res) => {
   try {
@@ -117,8 +139,9 @@ router.get('/products', async (req, res) => {
 // Add new product
 router.post('/products', upload.array('images', 5), async (req, res) => {
   try {
-    console.log('Received product data:', req.body);
-    console.log('Received files:', req.files);
+    console.log('Creating new product');
+    console.log('Request body:', req.body);
+    console.log('Files:', req.files);
 
     // Convert string numbers to actual numbers
     const productData = {
@@ -126,52 +149,47 @@ router.post('/products', upload.array('images', 5), async (req, res) => {
       price: Number(req.body.price),
       quantity: Number(req.body.quantity),
       images: req.files ? req.files.map(file => file.filename) : [],
-      status: req.body.status || 'Active',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      status: req.body.status || 'Active'
     };
 
-    console.log('Processed product data:', productData);
+    console.log('Product data before save:', productData);
 
-    // Validate required fields
-    const requiredFields = ['name', 'price', 'quantity', 'category', 'description'];
-    const missingFields = requiredFields.filter(field => !productData[field]);
-    
-    if (missingFields.length > 0) {
-      console.log('Missing required fields:', missingFields);
-      return res.status(400).json({ 
-        message: `Missing required fields: ${missingFields.join(', ')}` 
-      });
-    }
-
-    // Create and save product
+    // Create new product
     const product = new Product(productData);
-    console.log('Saving product to database...');
-    const savedProduct = await product.save();
-    console.log('Product saved successfully:', savedProduct);
+    console.log('Product model instance:', product);
+    console.log('About to save product to database');
+    console.log('Database connection state:', mongoose.connection.readyState);
+    console.log('Database name:', mongoose.connection.name);
     
-    res.status(201).json(savedProduct);
+    try {
+      await product.save();
+      console.log('Product saved successfully. Database:', mongoose.connection.name, 'Collection:', product.collection.name);
+    } catch (saveError) {
+      console.error('Error during save operation:', saveError);
+      console.error('Validation errors:', saveError.errors);
+      throw saveError;
+    }
+    
+    console.log('Product created successfully:', product);
+    res.status(201).json(product);
   } catch (error) {
-    console.error('Error saving product:', error);
+    console.error('Error creating product:', error);
+    console.error('Full error details:', JSON.stringify(error, null, 2));
     
-    // Delete uploaded files if product save fails
+    // Delete uploaded files if product creation fails
     if (req.files) {
       req.files.forEach(file => {
-        fs.unlink(file.path, err => {
+        const filePath = path.join(uploadDir, file.filename);
+        fs.unlink(filePath, err => {
           if (err) console.error('Error deleting file:', err);
         });
       });
     }
     
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: Object.values(error.errors).map(err => err.message) 
-      });
-    }
-    
     res.status(500).json({ 
-      message: 'An error occurred while saving the product. Please try again.' 
+      message: 'Error creating product', 
+      error: error.message,
+      details: error.errors || error 
     });
   }
 });
@@ -213,6 +231,144 @@ router.post('/stores/:id/order', async (req, res) => {
     res.json(store);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Update product
+router.put('/products/:id', upload.array('images', 5), async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const updateData = { ...req.body };
+    console.log('Updating product:', productId);
+    console.log('Update data:', updateData);
+    console.log('Files:', req.files);
+    
+    // Get the old product to handle image deletion
+    const oldProduct = await Product.findById(productId);
+    if (!oldProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Parse existing images (if any)
+    let existingImages = [];
+    try {
+      existingImages = req.body.existingImages ? JSON.parse(req.body.existingImages) : [];
+      console.log('Existing images to keep:', existingImages);
+    } catch (error) {
+      console.error('Error parsing existingImages:', error);
+      return res.status(400).json({ message: 'Invalid existingImages format' });
+    }
+
+    // Handle image deletion - remove files that are not in existingImages
+    if (oldProduct.images && oldProduct.images.length > 0) {
+      const imagesToDelete = oldProduct.images.filter(img => !existingImages.includes(img));
+      console.log('Images to delete:', imagesToDelete);
+      
+      for (const img of imagesToDelete) {
+        const imagePath = path.join(uploadDir, img);
+        console.log('Deleting image file:', imagePath);
+        try {
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+            console.log('Successfully deleted image file:', img);
+          }
+        } catch (error) {
+          console.error('Error deleting image file:', error);
+        }
+      }
+    }
+
+    // Add new uploaded images to existing ones
+    const newImages = req.files ? req.files.map(file => file.filename) : [];
+    console.log('New images:', newImages);
+    updateData.images = [...existingImages, ...newImages];
+    console.log('Final images array:', updateData.images);
+
+    // Convert string numbers to actual numbers
+    updateData.price = updateData.price ? Number(updateData.price) : oldProduct.price;
+    updateData.quantity = updateData.quantity ? Number(updateData.quantity) : oldProduct.quantity;
+    updateData.updatedAt = new Date();
+
+    // Ensure all required fields are present
+    const requiredFields = ['name', 'price', 'quantity', 'category', 'description'];
+    for (const field of requiredFields) {
+      if (!updateData[field] && updateData[field] !== 0) {
+        updateData[field] = oldProduct[field];
+      }
+    }
+
+    // Update the product with new data
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      throw new Error('Failed to update product');
+    }
+
+    console.log('Updated product:', updatedProduct);
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    // Delete any newly uploaded files if update fails
+    if (req.files) {
+      req.files.forEach(file => {
+        const filePath = path.join(uploadDir, file.filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+    res.status(500).json({ message: 'Error updating product', error: error.message });
+  }
+});
+
+// Delete product
+router.delete('/products/:id', async (req, res) => {
+  try {
+    console.log('Deleting product:', req.params.id);
+    const product = await Product.findById(req.params.id);
+    
+    if (!product) {
+      console.log('Product not found:', req.params.id);
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Delete all associated image files
+    if (product.images && product.images.length > 0) {
+      console.log('Deleting associated images:', product.images);
+      for (const img of product.images) {
+        const imagePath = path.join(uploadDir, img);
+        try {
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+            console.log('Successfully deleted image:', img);
+          } else {
+            console.log('Image file not found:', imagePath);
+          }
+        } catch (error) {
+          console.error('Error deleting image file:', error);
+          // Continue with deletion even if image removal fails
+        }
+      }
+    }
+
+    const result = await Product.findByIdAndDelete(req.params.id);
+    if (!result) {
+      throw new Error('Failed to delete product from database');
+    }
+    
+    console.log('Product deleted successfully:', req.params.id);
+    res.json({ message: 'Product deleted successfully', productId: req.params.id });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ 
+      message: 'Error deleting product', 
+      error: error.message,
+      productId: req.params.id 
+    });
   }
 });
 

@@ -25,12 +25,14 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['ring', 'necklace', 'bracelet'],
     required: true
   },
   images: [{
     type: String
   }],
+  sku: {
+    type: String
+  },
   store: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Store'
@@ -43,6 +45,8 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, {
+  collection: 'products' // Explicitly set collection name
 });
 
 // Update the updatedAt timestamp before saving
@@ -51,4 +55,7 @@ productSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Product', productSchema);
+const Product = mongoose.model('Product', productSchema);
+console.log('Product model initialized with collection:', Product.collection.name);
+
+module.exports = Product;

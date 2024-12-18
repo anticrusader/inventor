@@ -38,39 +38,112 @@ const Products = () => {
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterAvailability, setFilterAvailability] = useState('all');
+  const [filterType, setFilterType] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
   const [page, setPage] = useState(1);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [outOfStock, setOutOfStock] = useState(false);
   const rowsPerPage = 10;
 
   // Fetch products
   useEffect(() => {
-    const fetchProducts = async () => {
+    fetchProducts();
+  }, [location.state?.refresh]); // Re-fetch when refresh flag changes
+
+  /**
+   * Fetches products from the API and updates the local state.
+   * If location state contains a refresh flag, it is cleared after fetching.
+   */
+  const fetchProducts = async () => {
+    try {
+      // Set loading state to true
+      setLoading(true);
+      // Make API call to fetch products
+      const response = await api.getProducts();
+      console.log('Fetched products:', response.data);
+      // Update local state with the fetched products
+      setProducts(response.data);
+      // Clear any error messages
+      setError(null);
+      // If location state contains a refresh flag, remove it
+      if (location.state?.refresh) {
+        navigate(location.pathname, { replace: true });
+      }
+    } catch (err) {
+      // If there is an error, log it and set an error message in state
+      console.error('Error fetching products:', err);
+      setError('Failed to fetch products');
+    } finally {
+      // Set loading state to false, regardless of success or error
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (product) => {
+    navigate(`/edit-product/${product._id}`);
+  };
+
+  const handleDelete = async (productId) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         setLoading(true);
-        const response = await api.getProducts();
-        console.log('Fetched products:', response.data);
-        setProducts(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to load products');
+        await api.deleteProduct(productId);
+        // Remove the product from local state
+        setProducts(prevProducts => prevProducts.filter(p => p._id !== productId));
+        // Clear any selected items that were deleted
+        setSelected(prevSelected => prevSelected.filter(id => id !== productId));
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Failed to delete product. Please try again.');
+        // Refresh the products list to ensure consistency
+        fetchProducts();
       } finally {
         setLoading(false);
       }
-    };
+    }
+  };
 
-    fetchProducts();
-  }, []);
+  const handleDeleteSelected = async () => {
+    if (window.confirm(`Are you sure you want to delete ${selected.length} products?`)) {
+      try {
+        setLoading(true);
+        await Promise.all(selected.map(id => api.deleteProduct(id)));
+        // Remove deleted products from local state
+        setProducts(prevProducts => prevProducts.filter(p => !selected.includes(p._id)));
+        // Clear selected items
+        setSelected([]);
+      } catch (error) {
+        console.error('Error deleting products:', error);
+        alert('Failed to delete some products. Please try again.');
+        // Refresh the products list to ensure consistency
+        fetchProducts();
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   // Filter and search products
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesFilter = filterAvailability === 'all' || product.status === filterAvailability;
+        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      let matchesFilter = true;
+      if (filterType === 'total') {
+        matchesFilter = true;
+      } else if (filterType === 'active') {
+        matchesFilter = product.status.toLowerCase() === 'active';
+      } else if (filterType === 'deactive') {
+        matchesFilter = product.status.toLowerCase() === 'deactive';
+      } else if (outOfStock) {
+        matchesFilter = product.quantity === 0;
+      }
+      
       return matchesSearch && matchesFilter;
     });
-  }, [products, searchQuery, filterAvailability]);
+  }, [products, searchQuery, filterType, outOfStock]);
 
   // Calculate pagination
   const paginatedProducts = useMemo(() => {
@@ -95,32 +168,32 @@ const Products = () => {
     }
   };
 
-  // Calculate product stats
-  const productStats = [
-    { 
-      title: 'Total Products', 
-      count: products.length, 
-      change: '+1.5% Since last week',
-      path: '/total-products'
+  // Stats Cards
+  const stats = [
+    {
+      title: 'Total Products',
+      count: products.length,
+      change: '+2.5% Since last week',
+      filterValue: 'total',
+      activeColor: '#1976d2',
+      inactiveColor: '#1a1f2d'
     },
-    { 
-      title: 'Active Products', 
-      count: products.filter(p => p.status === 'Active').length, 
-      change: '+1.5% Since last week',
-      path: '/active-products'
+    {
+      title: 'Active Products',
+      count: products.filter(p => p.status.toLowerCase() === 'active').length,
+      change: '+3.2% Since last week',
+      filterValue: 'active',
+      activeColor: '#1976d2',
+      inactiveColor: '#1a1f2d'
     },
-    { 
-      title: 'Deactive Products', 
-      count: products.filter(p => p.status === 'Deactive').length, 
-      change: '+1.5% Since last week',
-      path: '/deactive-products'
-    },
-    { 
-      title: 'Out of Stock', 
-      count: products.filter(p => p.quantity === 0).length, 
-      change: '+1.5% Since last week',
-      path: '/out-of-stock'
-    },
+    {
+      title: 'Deactive Products',
+      count: products.filter(p => p.status.toLowerCase() === 'deactive').length,
+      change: '-0.8% Since last week',
+      filterValue: 'deactive',
+      activeColor: '#1976d2',
+      inactiveColor: '#1a1f2d'
+    }
   ];
 
   return (
@@ -141,32 +214,131 @@ const Products = () => {
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {productStats.map((stat, index) => (
+        {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Paper
               sx={{
-                p: 3,
-                height: '100%',
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                height: 140,
+                bgcolor: filterType === stat.filterValue ? stat.activeColor : stat.inactiveColor,
+                color: '#fff',
                 cursor: 'pointer',
-                '&:hover': { bgcolor: 'action.hover' }
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 3
+                }
               }}
-              onClick={() => navigate(stat.path)}
+              onClick={() => {
+                if (filterType === stat.filterValue) {
+                  setFilterType(null);
+                } else {
+                  setFilterType(stat.filterValue);
+                  setOutOfStock(false);
+                }
+              }}
             >
-              <Typography variant="subtitle2" color="textSecondary">
+              <Typography variant="subtitle2" sx={{ mb: 1, color: '#fff' }}>
                 {stat.title}
               </Typography>
-              <Typography variant="h4" sx={{ my: 1 }}>
+              <Typography variant="h3" component="div" sx={{ flexGrow: 1, color: '#fff' }}>
                 {stat.count}
               </Typography>
-              <Typography variant="body2" color="success.main">
-                {stat.change}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ color: '#4caf50' }}>
+                  {stat.change}
+                </Typography>
+              </Box>
             </Paper>
           </Grid>
         ))}
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper
+            sx={{
+              p: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              height: 140,
+              bgcolor: outOfStock ? '#00e676' : '#1a1f2d',
+              color: outOfStock ? '#000' : '#fff',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 3
+              }
+            }}
+            onClick={() => {
+              setOutOfStock(!outOfStock);
+              setFilterType(null);
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Out of Stock
+            </Typography>
+            <Typography variant="h3" component="div" sx={{ flexGrow: 1 }}>
+              {products.filter(p => p.quantity === 0).length}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ color: outOfStock ? '#000' : '#4caf50' }}>
+                +1.5% Since last week
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
       </Grid>
 
-      {/* Filters */}
+      {/* Products list header with filters */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        mb: 3,
+        borderBottom: 1,
+        borderColor: 'divider',
+        pb: 1
+      }}>
+        <Typography variant="h6" component="div" sx={{ mr: 3 }}>
+          Products list
+        </Typography>
+        <Box sx={{ 
+          display: 'flex',
+          gap: 1,
+          '& .MuiButton-root': {
+            minWidth: 'auto',
+            px: 2,
+            py: 0.5,
+            borderRadius: '20px',
+            textTransform: 'none',
+            fontSize: '0.875rem'
+          }
+        }}>
+          <Button
+            variant={filterStatus === 'all' ? 'contained' : 'outlined'}
+            onClick={() => setFilterStatus('all')}
+            color="primary"
+          >
+            All
+          </Button>
+          <Button
+            variant={filterStatus === 'active' ? 'contained' : 'outlined'}
+            onClick={() => setFilterStatus('active')}
+            color="primary"
+          >
+            Active
+          </Button>
+          <Button
+            variant={filterStatus === 'deactive' ? 'contained' : 'outlined'}
+            onClick={() => setFilterStatus('deactive')}
+            color="primary"
+          >
+            Deactive
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Search and other controls */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
         <TextField
           size="small"
@@ -178,18 +350,6 @@ const Products = () => {
             startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />,
           }}
         />
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Availability</InputLabel>
-          <Select
-            value={filterAvailability}
-            onChange={(e) => setFilterAvailability(e.target.value)}
-            label="Availability"
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Deactive">Deactive</MenuItem>
-          </Select>
-        </FormControl>
       </Box>
 
       {/* Products Table */}
@@ -220,11 +380,17 @@ const Products = () => {
               </TableHead>
               <TableBody>
                 {paginatedProducts.map((product) => (
-                  <TableRow key={product._id} hover>
+                  <TableRow
+                    key={product._id}
+                    hover
+                    role="checkbox"
+                    tabIndex={-1}
+                  >
                     <TableCell padding="checkbox">
                       <Checkbox
+                        color="primary"
                         checked={selected.includes(product._id)}
-                        onChange={(e) => handleSelectOne(e, product._id)}
+                        onChange={(event) => handleSelectOne(event, product._id)}
                       />
                     </TableCell>
                     <TableCell>
@@ -232,8 +398,13 @@ const Products = () => {
                         {product.images && product.images[0] && (
                           <Box
                             component="img"
-                            src={`http://localhost:5001/uploads/products/${product.images[0]}`}
+                            src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].replace(/0{0,1}(\d{13})-/, '$1-')}`}
+                            alt={product.name}
                             sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                            onError={(e) => {
+                              console.error('Error loading image:', e);
+                              e.target.src = 'https://via.placeholder.com/40';
+                            }}
                           />
                         )}
                         <Box>
@@ -255,10 +426,16 @@ const Products = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <IconButton size="small" onClick={() => navigate(`/edit-product/${product._id}`)}>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleEdit(product)}
+                      >
                         <EditIcon />
                       </IconButton>
-                      <IconButton size="small" color="error">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleDelete(product._id)}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -275,6 +452,16 @@ const Products = () => {
               onChange={(e, newPage) => setPage(newPage)}
             />
           </Box>
+          {selected.length > 0 && (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleDeleteSelected}
+              sx={{ mt: 2 }}
+            >
+              Delete selected ({selected.length})
+            </Button>
+          )}
         </>
       )}
     </Container>

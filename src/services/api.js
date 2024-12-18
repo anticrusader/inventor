@@ -41,19 +41,53 @@ const api = {
   
   // Products
   getProducts: () => axiosInstance.get('/products'),
+  getProduct: async (id) => {
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      throw new Error('Cannot connect to server. Please check if the server is running.');
+    }
+    return axiosInstance.get(`/products/${id}`);
+  },
   addProduct: async (formData) => {
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
     
-    return axios.post(`${API_URL}/products`, formData, {
-      withCredentials: true,
+    const config = {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
       timeout: 45000
+    };
+    
+    return axiosInstance.post('/products', formData, config);
+  },
+  updateProduct: async (id, formData) => {
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      throw new Error('Cannot connect to server. Please check if the server is running.');
+    }
+    
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+
+    const updatedFormData = new FormData();
+    Object.keys(formData).forEach(key => {
+      updatedFormData.append(key, formData[key]);
     });
+
+    return axios.put(`${API_URL}/products/${id}`, updatedFormData, config);
+  },
+  deleteProduct: async (id) => {
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      throw new Error('Cannot connect to server. Please check if the server is running.');
+    }
+    return axiosInstance.delete(`/products/${id}`);
   },
   
   // Stores

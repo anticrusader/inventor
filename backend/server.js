@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs'); // Add this line to import fs module
 const apiRoutes = require('./routes/api');
 
 // Set mongoose options to fix deprecation warnings
@@ -14,6 +15,7 @@ app.use(cors({
   origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
@@ -24,7 +26,13 @@ app.options('*', cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static files
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads', 'products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Simple test route
@@ -34,7 +42,13 @@ app.get('/test', (req, res) => {
 
 // Connect to MongoDB with updated options
 console.log('Attempting to connect to MongoDB...');
-mongoose.connect('mongodb://127.0.0.1:27017/inventor', {
+mongoose.set('debug', true); // Enable mongoose debug mode
+
+// Define the MongoDB URI
+const MONGODB_URI = 'mongodb://127.0.0.1:27017/inventor';
+console.log('MongoDB URI:', MONGODB_URI);
+
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
@@ -42,6 +56,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/inventor', {
 })
 .then(() => {
   console.log('Successfully connected to MongoDB');
+  console.log('Connected to database:', mongoose.connection.db.databaseName);
+  console.log('Available collections:', mongoose.connection.db.listCollections());
   
   // Only start server after DB connection is established
   const PORT = 5001;
