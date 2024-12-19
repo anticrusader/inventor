@@ -29,15 +29,37 @@ const AddProduct = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categoryError, setCategoryError] = useState(null);
   const [product, setProduct] = useState({
     name: '',
     price: '',
     sku: '',
     quantity: '',
     description: '',
-    status: 'Active',
+    status: 'active',
     category: ''
   });
+
+  useEffect(() => {
+    // Load categories when component mounts
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        setCategoryError(null);
+        const response = await api.getCategories();
+        console.log('Categories loaded:', response.data);
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategoryError('Failed to load categories');
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (editMode && location.state?.product) {
@@ -48,7 +70,7 @@ const AddProduct = () => {
         sku: editProduct.sku,
         quantity: editProduct.quantity,
         description: editProduct.description,
-        status: editProduct.status,
+        status: editProduct.status.toLowerCase(),
         category: editProduct.category
       });
       
@@ -322,24 +344,41 @@ const AddProduct = () => {
                     value={product.category}
                     onChange={handleInputChange}
                     label="Category"
+                    disabled={loadingCategories}
                   >
-                    <MenuItem value="ring">Ring</MenuItem>
-                    <MenuItem value="necklace">Necklace</MenuItem>
-                    <MenuItem value="bracelet">Bracelet</MenuItem>
+                    {loadingCategories ? (
+                      <MenuItem value="" disabled>
+                        Loading categories...
+                      </MenuItem>
+                    ) : categoryError ? (
+                      <MenuItem value="" disabled>
+                        {categoryError}
+                      </MenuItem>
+                    ) : categories && categories.length > 0 ? (
+                      categories.map((category) => (
+                        <MenuItem key={category._id} value={category.name}>
+                          {category.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem value="" disabled>
+                        No categories available
+                      </MenuItem>
+                    )}
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Availability</InputLabel>
+                  <InputLabel>Status</InputLabel>
                   <Select
                     name="status"
                     value={product.status}
                     onChange={handleInputChange}
-                    label="Availability"
+                    label="Status"
                   >
-                    <MenuItem value="Active">Active</MenuItem>
-                    <MenuItem value="Deactive">Deactive</MenuItem>
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="inactive">Inactive</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

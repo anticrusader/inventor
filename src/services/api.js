@@ -182,9 +182,45 @@ const api = {
   },
 
   // Stores
-  getStores: () => axiosInstance.get('/stores'),
-  addStore: (store) => axiosInstance.post('/stores', store),
-  addStoreOrder: (storeId, orderAmount) => axiosInstance.post(`/stores/${storeId}/orders`, { amount: orderAmount }),
+  getStores: async () => {
+    try {
+      const response = await axiosInstance.get('/stores');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching stores:', error);
+      throw error;
+    }
+  },
+
+  addStore: async (store) => {
+    try {
+      const response = await axiosInstance.post('/stores', store);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding store:', error);
+      throw error;
+    }
+  },
+
+  updateStore: async (id, store) => {
+    try {
+      const response = await axiosInstance.put(`/stores/${id}`, store);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating store:', error);
+      throw error;
+    }
+  },
+
+  deleteStore: async (id) => {
+    try {
+      const response = await axiosInstance.delete(`/stores/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting store:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

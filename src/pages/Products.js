@@ -22,13 +22,20 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  ImageList,
+  ImageListItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate, useLocation } from 'react-router-dom';
+import ZoomableImage from '../components/ZoomableImage';
 
 const Products = () => {
   const navigate = useNavigate();
@@ -44,6 +51,7 @@ const Products = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [outOfStock, setOutOfStock] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const rowsPerPage = 10;
 
   // Fetch products
@@ -122,6 +130,14 @@ const Products = () => {
         setLoading(false);
       }
     }
+  };
+
+  const handleViewImages = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseImages = () => {
+    setSelectedProduct(null);
   };
 
   // Filter and search products
@@ -446,18 +462,29 @@ const Products = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDelete(product._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleViewImages(product)}
+                          title="View Images"
+                        >
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleEdit(product)}
+                          title="Edit Product"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleDelete(product._id)}
+                          title="Delete Product"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -484,6 +511,34 @@ const Products = () => {
           )}
         </>
       )}
+      <Dialog 
+        open={!!selectedProduct} 
+        onClose={handleCloseImages}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Product Images - {selectedProduct?.name}
+        </DialogTitle>
+        <DialogContent>
+          {selectedProduct?.images?.length > 0 ? (
+            <ImageList cols={3} gap={8}>
+              {selectedProduct.images.map((image, index) => (
+                <ImageListItem key={index}>
+                  <ZoomableImage
+                    src={`${process.env.REACT_APP_API_URL}/uploads/products/${image}`}
+                    alt={`Product ${index + 1}`}
+                  />
+                </ImageListItem>
+              ))}
+            </ImageList>
+          ) : (
+            <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+              No images available for this product
+            </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };

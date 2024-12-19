@@ -209,24 +209,83 @@ router.post('/products', upload.array('images', 5), async (req, res) => {
   }
 });
 
-// Add new store
-router.post('/stores', async (req, res) => {
-  try {
-    const store = new Store(req.body);
-    await store.save();
-    res.status(201).json(store);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
+// Store Routes
 
 // Get all stores
 router.get('/stores', async (req, res) => {
   try {
-    const stores = await Store.find();
+    console.log('Fetching all stores');
+    const stores = await Store.find().sort({ createdAt: -1 });
+    console.log('Found stores:', stores);
     res.json(stores);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching stores:', error);
+    res.status(500).json({ message: 'Error fetching stores', error: error.message });
+  }
+});
+
+// Add new store
+router.post('/stores', async (req, res) => {
+  try {
+    console.log('Creating new store:', req.body);
+    const store = new Store(req.body);
+    await store.save();
+    console.log('Store created successfully:', store);
+    res.status(201).json(store);
+  } catch (error) {
+    console.error('Error creating store:', error);
+    res.status(400).json({ 
+      message: 'Error creating store', 
+      error: error.message,
+      details: error.errors || {}
+    });
+  }
+});
+
+// Update store
+router.put('/stores/:id', async (req, res) => {
+  try {
+    console.log('Updating store:', req.params.id);
+    const store = await Store.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+    
+    if (!store) {
+      return res.status(404).json({ message: 'Store not found' });
+    }
+    
+    console.log('Store updated successfully:', store);
+    res.json(store);
+  } catch (error) {
+    console.error('Error updating store:', error);
+    res.status(400).json({ 
+      message: 'Error updating store', 
+      error: error.message,
+      details: error.errors || {}
+    });
+  }
+});
+
+// Delete store
+router.delete('/stores/:id', async (req, res) => {
+  try {
+    console.log('Deleting store:', req.params.id);
+    const store = await Store.findByIdAndDelete(req.params.id);
+    
+    if (!store) {
+      return res.status(404).json({ message: 'Store not found' });
+    }
+    
+    console.log('Store deleted successfully');
+    res.json({ message: 'Store deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting store:', error);
+    res.status(500).json({ 
+      message: 'Error deleting store', 
+      error: error.message 
+    });
   }
 });
 
@@ -235,6 +294,7 @@ router.post('/stores/:id/order', async (req, res) => {
   try {
     const { orderAmount } = req.body;
     const store = await Store.findById(req.params.id);
+    
     if (!store) {
       return res.status(404).json({ message: 'Store not found' });
     }
@@ -243,9 +303,14 @@ router.post('/stores/:id/order', async (req, res) => {
     store.totalSales += orderAmount;
     await store.save();
     
+    console.log('Store order updated:', store);
     res.json(store);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error updating store order:', error);
+    res.status(400).json({ 
+      message: 'Error updating store order', 
+      error: error.message 
+    });
   }
 });
 
@@ -393,28 +458,12 @@ router.delete('/products/:id', async (req, res) => {
 // Categories routes
 router.get('/categories', async (req, res) => {
   try {
-    console.log('GET /categories endpoint hit');
-    let count = await Category.countDocuments();
-    console.log('Found categories count:', count);
-
-    // Create default categories if none exist
-    if (count === 0) {
-      console.log('Creating default categories...');
-      const defaultCategories = [
-        { name: 'Ring', description: 'Ring jewelry', status: 'active' },
-        { name: 'Necklace', description: 'Necklace jewelry', status: 'active' },
-        { name: 'Bracelet', description: 'Bracelet jewelry', status: 'active' },
-        { name: 'Earring', description: 'Earring jewelry', status: 'active' }
-      ];
-      await Category.insertMany(defaultCategories);
-      console.log('Default categories created');
-    }
-
-    const categories = await Category.find().sort('name');
-    console.log('Returning categories:', categories);
-    res.json(categories);
+    console.log('Fetching all categories');
+    const categories = await Category.find({});
+    console.log('Categories found:', categories);
+    res.json({ data: categories });
   } catch (error) {
-    console.error('Error in GET /categories:', error);
+    console.error('Error fetching categories:', error);
     res.status(500).json({ message: 'Error fetching categories', error: error.message });
   }
 });
@@ -427,7 +476,7 @@ router.post('/categories', async (req, res) => {
     res.status(201).json(category);
   } catch (error) {
     console.error('Error creating category:', error);
-    res.status(400).json({ message: 'Error creating category', error: error.message });
+    res.status(500).json({ message: 'Error creating category', error: error.message });
   }
 });
 
@@ -461,63 +510,34 @@ router.delete('/categories/:id', async (req, res) => {
   }
 });
 
-// Add some default categories if none exist
+// Initialize default categories if none exist
 const initializeCategories = async () => {
   try {
-    console.log('Checking for existing categories...');
     const count = await Category.countDocuments();
-    console.log(`Found ${count} existing categories`);
-
     if (count === 0) {
       console.log('No categories found. Creating default categories...');
       const defaultCategories = [
-        { 
-          name: 'ring', 
-          description: 'Ring jewelry',
-          status: 'active'
-        },
-        { 
-          name: 'necklace', 
-          description: 'Necklace jewelry',
-          status: 'active'
-        },
-        { 
-          name: 'bracelet', 
-          description: 'Bracelet jewelry',
-          status: 'active'
-        },
-        { 
-          name: 'earring', 
-          description: 'Earring jewelry',
-          status: 'active'
-        },
-        { 
-          name: 'pendant', 
-          description: 'Pendant jewelry',
-          status: 'active'
-        }
+        { name: 'Ring', description: 'Ring jewelry', status: 'active' },
+        { name: 'Necklace', description: 'Necklace jewelry', status: 'active' },
+        { name: 'Bracelet', description: 'Bracelet jewelry', status: 'active' },
+        { name: 'Earring', description: 'Earring jewelry', status: 'active' }
       ];
-
-      const result = await Category.insertMany(defaultCategories);
-      console.log(`Successfully created ${result.length} default categories`);
+      await Category.insertMany(defaultCategories);
+      console.log('Default categories created successfully');
+    } else {
+      console.log(`Found ${count} existing categories`);
     }
   } catch (error) {
     console.error('Error initializing categories:', error);
-    // Try to provide more specific error information
-    if (error.code === 11000) {
-      console.error('Duplicate category found:', error.keyValue);
-    }
   }
 };
 
-// Make sure to call initialization when the router is loaded
+// Call initialization when server starts
 (async () => {
   try {
-    console.log('Starting category initialization...');
     await initializeCategories();
-    console.log('Category initialization completed');
   } catch (error) {
-    console.error('Failed to initialize categories:', error);
+    console.error('Error during initialization:', error);
   }
 })();
 
