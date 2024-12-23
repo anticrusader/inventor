@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs'); // Add this line to import fs module
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');
+const categoriesRoutes = require('./routes/categories');
 
 // Set mongoose options to fix deprecation warnings
 mongoose.set('strictQuery', true);
@@ -36,8 +37,9 @@ if (!fs.existsSync(uploadsDir)) {
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Mount API routes
-console.log('Mounting API routes...');
+// Mount routes
+app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoriesRoutes);  // Mount categories route first
 app.use('/api', (req, res, next) => {
   console.log('API request received:', {
     method: req.method,
@@ -49,9 +51,6 @@ app.use('/api', (req, res, next) => {
 console.log('API routes mounted. Available routes:', 
   Object.keys(apiRoutes.stack || []).map(r => r.route?.path).filter(Boolean)
 );
-
-// Mount auth routes
-app.use('/api/auth', authRoutes);
 
 // Simple test route
 app.get('/test', (req, res) => {

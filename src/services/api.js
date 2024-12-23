@@ -120,67 +120,46 @@ const api = {
   // Categories
   getCategories: async () => {
     try {
-      console.log('Making request to /categories endpoint');
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        throw new Error('Cannot connect to server. Please check if the server is running.');
-      }
-      console.log('Server connection verified, fetching categories...');
+      console.log('Fetching categories...');
       const response = await axiosInstance.get('/categories');
-      console.log('Categories response:', response);
+      console.log('Categories response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Failed to get categories:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
+      console.error('Error fetching categories:', error);
       throw error;
     }
   },
   
   addCategory: async (category) => {
     try {
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        throw new Error('Cannot connect to server. Please check if the server is running.');
-      }
       const response = await axiosInstance.post('/categories', category);
       return response.data;
     } catch (error) {
-      console.error('Failed to add category:', error.message);
+      console.error('Error adding category:', error);
       throw error;
     }
   },
   
   updateCategory: async (id, category) => {
     try {
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        throw new Error('Cannot connect to server. Please check if the server is running.');
-      }
       const response = await axiosInstance.put(`/categories/${id}`, category);
       return response.data;
     } catch (error) {
-      console.error('Failed to update category:', error.message);
+      console.error('Error updating category:', error);
       throw error;
     }
   },
   
   deleteCategory: async (id) => {
     try {
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        throw new Error('Cannot connect to server. Please check if the server is running.');
-      }
       const response = await axiosInstance.delete(`/categories/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Failed to delete category:', error.message);
+      console.error('Error deleting category:', error);
       throw error;
     }
   },
-
+  
   // Stores
   getStores: async () => {
     try {
@@ -191,7 +170,7 @@ const api = {
       throw error;
     }
   },
-
+  
   addStore: async (store) => {
     try {
       const response = await axiosInstance.post('/stores', store);
@@ -201,7 +180,7 @@ const api = {
       throw error;
     }
   },
-
+  
   updateStore: async (id, store) => {
     try {
       const response = await axiosInstance.put(`/stores/${id}`, store);
@@ -211,7 +190,7 @@ const api = {
       throw error;
     }
   },
-
+  
   deleteStore: async (id) => {
     try {
       const response = await axiosInstance.delete(`/stores/${id}`);

@@ -48,9 +48,9 @@ const AddProduct = () => {
       try {
         setLoadingCategories(true);
         setCategoryError(null);
-        const response = await api.getCategories();
-        console.log('Categories loaded:', response.data);
-        setCategories(response.data);
+        const categories = await api.getCategories();
+        console.log('Categories loaded:', categories);
+        setCategories(categories || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
         setCategoryError('Failed to load categories');
