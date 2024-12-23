@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs'); // Add this line to import fs module
 const apiRoutes = require('./routes/api');
+const authRoutes = require('./routes/auth');
 
 // Set mongoose options to fix deprecation warnings
 mongoose.set('strictQuery', true);
@@ -48,6 +49,9 @@ app.use('/api', (req, res, next) => {
 console.log('API routes mounted. Available routes:', 
   Object.keys(apiRoutes.stack || []).map(r => r.route?.path).filter(Boolean)
 );
+
+// Mount auth routes
+app.use('/api/auth', authRoutes);
 
 // Simple test route
 app.get('/test', (req, res) => {

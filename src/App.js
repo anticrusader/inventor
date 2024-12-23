@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import Header from './components/Layout/Header';
@@ -154,44 +154,264 @@ const theme = createTheme({
   },
 });
 
+const ProtectedRoute = ({ children }) => {
+  const user = localStorage.getItem('user');
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return (
+    <>
+      <Header />
+      {children}
+    </>
+  );
+};
+
+const PublicRoute = ({ children }) => {
+  const user = localStorage.getItem('user');
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <div className="App">
-          <Header />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/add-product" element={<AddProduct />} />
-            <Route path="/edit-product/:id" element={<EditProduct />} />
-            <Route path="/products-overview" element={<ProductsOverview />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/add-order" element={<AddOrder />} />
-            <Route path="/stores" element={<Stores />} />
-            <Route path="/add-store" element={<AddStore />} />
-            <Route path="/stores-overview" element={<StoresOverview />} />
-            <Route path="/groups" element={<Groups />} />
-            <Route path="/add-group" element={<AddGroup />} />
-            <Route path="/groups-permissions" element={<GroupsPermissions />} />
-            <Route path="/brand" element={<Brand />} />
-            <Route path="/add-brand" element={<AddBrand />} />
-            <Route path="/category" element={<Category />} />
-            <Route path="/add-category" element={<AddCategory />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/company" element={<Company />} />
-            <Route path="/add-company" element={<AddCompany />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile-settings" element={<ProfileSettings />} />
-            <Route path="/notification-management" element={<NotificationManagement />} />
-            <Route path="/attributes" element={<Attributes />} />
-            <Route path="/attributes-value" element={<AttributesValue />} />
-            <Route path="/add-attributes" element={<AddAttributes />} />
-            <Route path="/reports" element={<Reports />} />
-          </Routes>
-        </div>
+        <Routes>
+          {/* Public Routes */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-product"
+            element={
+              <ProtectedRoute>
+                <AddProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-product/:id"
+            element={
+              <ProtectedRoute>
+                <EditProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products-overview"
+            element={
+              <ProtectedRoute>
+                <ProductsOverview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-order"
+            element={
+              <ProtectedRoute>
+                <AddOrder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stores"
+            element={
+              <ProtectedRoute>
+                <Stores />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-store"
+            element={
+              <ProtectedRoute>
+                <AddStore />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stores-overview"
+            element={
+              <ProtectedRoute>
+                <StoresOverview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups"
+            element={
+              <ProtectedRoute>
+                <Groups />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-group"
+            element={
+              <ProtectedRoute>
+                <AddGroup />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups-permissions"
+            element={
+              <ProtectedRoute>
+                <GroupsPermissions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/brand"
+            element={
+              <ProtectedRoute>
+                <Brand />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-brand"
+            element={
+              <ProtectedRoute>
+                <AddBrand />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/category"
+            element={
+              <ProtectedRoute>
+                <Category />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-category"
+            element={
+              <ProtectedRoute>
+                <AddCategory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <ProtectedRoute>
+                <Categories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/company"
+            element={
+              <ProtectedRoute>
+                <Company />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-company"
+            element={
+              <ProtectedRoute>
+                <AddCompany />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile-settings"
+            element={
+              <ProtectedRoute>
+                <ProfileSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notification-management"
+            element={
+              <ProtectedRoute>
+                <NotificationManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/attributes"
+            element={
+              <ProtectedRoute>
+                <Attributes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/attributes-value"
+            element={
+              <ProtectedRoute>
+                <AttributesValue />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-attributes"
+            element={
+              <ProtectedRoute>
+                <AddAttributes />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Router>
     </ThemeProvider>
   );

@@ -22,6 +22,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import StoreIcon from '@mui/icons-material/Store';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const Header = () => {
   const location = useLocation();
@@ -29,6 +30,7 @@ const Header = () => {
   const [moreAnchorEl, setMoreAnchorEl] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
   const handleMenuClick = (event, menu) => {
     event.stopPropagation();
@@ -51,6 +53,19 @@ const Header = () => {
 
   const handleNavClick = (path) => {
     navigate(path);
+  };
+
+  const handleProfileMenuOpen = (event) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileAnchorEl(null);
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
   const mainMenuItems = [
@@ -112,6 +127,8 @@ const Header = () => {
     },
   ];
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
   return (
     <AppBar position="static" sx={{ backgroundColor: '#0B1120', boxShadow: 'none' }}>
       <Container maxWidth="xl">
@@ -146,8 +163,8 @@ const Header = () => {
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuClick(e, item.label)}
-                      sx={{ 
-                        ml: -1, 
+                      sx={{
+                        ml: -1,
                         color: 'inherit',
                         '&:hover': { backgroundColor: 'transparent' }
                       }}
@@ -259,12 +276,38 @@ const Header = () => {
             <IconButton sx={{ color: 'rgba(255,255,255,0.7)' }}>
               <NotificationsIcon />
             </IconButton>
-            <IconButton 
-              onClick={() => handleNavClick('/profile')}
-              sx={{ color: 'rgba(255,255,255,0.7)' }}
+            <IconButton
+              size="large"
+              edge="end"
+              aria-label="account of current user"
+              aria-controls="primary-search-account-menu"
+              aria-haspopup="true"
+              onClick={handleProfileMenuOpen}
+              color="inherit"
             >
-              <Avatar sx={{ width: 32, height: 32 }} />
+              <AccountCircleIcon />
             </IconButton>
+            <Menu
+              anchorEl={profileAnchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              id="primary-search-account-menu"
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(profileAnchorEl)}
+              onClose={handleProfileMenuClose}
+            >
+              <MenuItem onClick={handleProfileMenuClose} component={Link} to="/profile">
+                Profile
+              </MenuItem>
+              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
+            </Menu>
+            <Typography sx={{ ml: 2 }}>{user.username}</Typography>
           </Box>
         </Toolbar>
       </Container>
