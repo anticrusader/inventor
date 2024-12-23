@@ -68,6 +68,11 @@ const Header = () => {
     navigate('/login');
   };
 
+  const handleProfile = () => {
+    navigate('/profile');
+    handleProfileMenuClose();
+  };
+
   const mainMenuItems = [
     {
       label: 'Dashboard',
@@ -302,7 +307,7 @@ const Header = () => {
               open={Boolean(profileAnchorEl)}
               onClose={handleProfileMenuClose}
             >
-              <MenuItem onClick={handleProfileMenuClose} component={Link} to="/profile">
+              <MenuItem onClick={handleProfile}>
                 Profile
               </MenuItem>
               <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>

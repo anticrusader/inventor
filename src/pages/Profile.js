@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import {
-  Box,
   Container,
+  Grid,
+  Paper,
   Typography,
   TextField,
   Button,
   Avatar,
-  Grid,
-  IconButton,
-  Paper,
-  Divider,
+  Box,
   Stack,
   Checkbox,
   FormControlLabel,
@@ -22,11 +20,8 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const socialPlatforms = [
   { name: 'Facebook', icon: '/facebook-icon.svg' },
-  { name: 'Instagram', icon: '/instagram-icon.svg' },
+  { name: 'Twitter', icon: '/twitter-icon.svg' },
   { name: 'LinkedIn', icon: '/linkedin-icon.svg' },
-  { name: 'LinkedIn', icon: '/linkedin-icon.svg' },
-  { name: 'WhatsApp', icon: '/whatsapp-icon.svg' },
-  { name: 'Telegram', icon: '/telegram-icon.svg' },
 ];
 
 const Profile = () => {

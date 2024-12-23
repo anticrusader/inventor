@@ -201,6 +201,14 @@ function App() {
             }
           />
           <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/products"
             element={
               <ProtectedRoute>
@@ -273,62 +281,6 @@ function App() {
             }
           />
           <Route
-            path="/groups"
-            element={
-              <ProtectedRoute>
-                <Groups />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-group"
-            element={
-              <ProtectedRoute>
-                <AddGroup />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/groups-permissions"
-            element={
-              <ProtectedRoute>
-                <GroupsPermissions />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/brand"
-            element={
-              <ProtectedRoute>
-                <Brand />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-brand"
-            element={
-              <ProtectedRoute>
-                <AddBrand />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/category"
-            element={
-              <ProtectedRoute>
-                <Category />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-category"
-            element={
-              <ProtectedRoute>
-                <AddCategory />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/categories"
             element={
               <ProtectedRoute>
@@ -337,66 +289,10 @@ function App() {
             }
           />
           <Route
-            path="/company"
+            path="/add-category"
             element={
               <ProtectedRoute>
-                <Company />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-company"
-            element={
-              <ProtectedRoute>
-                <AddCompany />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile-settings"
-            element={
-              <ProtectedRoute>
-                <ProfileSettings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notification-management"
-            element={
-              <ProtectedRoute>
-                <NotificationManagement />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/attributes"
-            element={
-              <ProtectedRoute>
-                <Attributes />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/attributes-value"
-            element={
-              <ProtectedRoute>
-                <AttributesValue />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-attributes"
-            element={
-              <ProtectedRoute>
-                <AddAttributes />
+                <AddCategory />
               </ProtectedRoute>
             }
           />

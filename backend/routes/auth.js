@@ -37,9 +37,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Check auth status
-router.get('/check', (req, res) => {
-  res.json({ isAuthenticated: true });
-});
-
 module.exports = router;
