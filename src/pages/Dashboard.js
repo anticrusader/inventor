@@ -721,7 +721,7 @@ const Dashboard = () => {
     },
     {
       title: 'Total paid Orders',
-      count: `$${dashboardData.stats.totalSales.toLocaleString()}`,
+      count: `Rs.${dashboardData.stats.totalSales.toLocaleString()}`,
       change: '+12% Since last week',
       icon: ShoppingCartIcon,
       path: '/orders'

@@ -37,13 +37,15 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ZoomableImage from '../components/ZoomableImage';
 
+const defaultProductImage = 'https://via.placeholder.com/40';
+
 const Products = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selected, setSelected] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -119,7 +121,7 @@ const Products = () => {
         // Remove the product from local state
         setProducts(prevProducts => prevProducts.filter(p => p._id !== productId));
         // Clear any selected items that were deleted
-        setSelected(prevSelected => prevSelected.filter(id => id !== productId));
+        setSelectedProducts(prevSelected => prevSelected.filter(id => id !== productId));
       } catch (error) {
         console.error('Error deleting product:', error);
         alert('Failed to delete product. Please try again.');
@@ -132,14 +134,14 @@ const Products = () => {
   };
 
   const handleDeleteSelected = async () => {
-    if (window.confirm(`Are you sure you want to delete ${selected.length} products?`)) {
+    if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) {
       try {
         setLoading(true);
-        await Promise.all(selected.map(id => api.deleteProduct(id)));
+        await Promise.all(selectedProducts.map(id => api.deleteProduct(id)));
         // Remove deleted products from local state
-        setProducts(prevProducts => prevProducts.filter(p => !selected.includes(p._id)));
+        setProducts(prevProducts => prevProducts.filter(p => !selectedProducts.includes(p._id)));
         // Clear selected items
-        setSelected([]);
+        setSelectedProducts([]);
       } catch (error) {
         console.error('Error deleting products:', error);
         alert('Failed to delete some products. Please try again.');
@@ -197,17 +199,17 @@ const Products = () => {
   // Handle checkbox selection
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelected(paginatedProducts.map(product => product._id));
+      setSelectedProducts(paginatedProducts.map(product => product._id));
     } else {
-      setSelected([]);
+      setSelectedProducts([]);
     }
   };
 
-  const handleSelectOne = (event, id) => {
+  const handleSelectProduct = (event, id) => {
     if (event.target.checked) {
-      setSelected([...selected, id]);
+      setSelectedProducts([...selectedProducts, id]);
     } else {
-      setSelected(selected.filter(selectedId => selectedId !== id));
+      setSelectedProducts(selectedProducts.filter(selectedId => selectedId !== id));
     }
   };
 
@@ -415,17 +417,19 @@ const Products = () => {
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selected.length === paginatedProducts.length}
-                      indeterminate={selected.length > 0 && selected.length < paginatedProducts.length}
+                      indeterminate={selectedProducts.length > 0 && selectedProducts.length < paginatedProducts.length}
+                      checked={paginatedProducts.length > 0 && selectedProducts.length === paginatedProducts.length}
                       onChange={handleSelectAll}
                     />
                   </TableCell>
                   <TableCell>Product</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Quantity</TableCell>
+                  <TableCell align="right">Price</TableCell>
+                  <TableCell align="right">Quantity</TableCell>
+                  <TableCell align="right">Weight</TableCell>
+                  <TableCell>Stone</TableCell>
+                  <TableCell>Vendor</TableCell>
                   <TableCell>Category</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -434,71 +438,59 @@ const Products = () => {
                     key={product._id}
                     hover
                     role="checkbox"
-                    tabIndex={-1}
+                    selected={selectedProducts.includes(product._id)}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
-                        color="primary"
-                        checked={selected.includes(product._id)}
-                        onChange={(event) => handleSelectOne(event, product._id)}
+                        checked={selectedProducts.includes(product._id)}
+                        onChange={(event) => handleSelectProduct(event, product._id)}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell component="th" scope="row">
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        {product.images && product.images[0] && (
-                          <Box
-                            component="img"
-                            src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0].replace(/0{0,1}(\d{13})-/, '$1-')}`}
+                        {product.images && product.images.length > 0 ? (
+                          <img
+                            src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.images[0]}`}
                             alt={product.name}
-                            sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 1 }}
+                            style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: '4px' }}
                             onError={(e) => {
-                              console.error('Error loading image:', e);
-                              e.target.src = 'https://via.placeholder.com/40';
+                              e.target.onerror = null;
+                              e.target.src = defaultProductImage;
                             }}
+                          />
+                        ) : (
+                          <img
+                            src={defaultProductImage}
+                            alt="Default"
+                            style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: '4px' }}
                           />
                         )}
                         <Box>
                           <Typography variant="subtitle2">{product.name}</Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            {product.description}
+                          <Typography variant="body2" color="text.secondary">
+                            {product.sku}
                           </Typography>
                         </Box>
                       </Box>
                     </TableCell>
-                    <TableCell>${product.price}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell>{product.category}</TableCell>
+                    <TableCell align="right">Rs. {product.price}</TableCell>
+                    <TableCell align="right">{product.quantity}</TableCell>
+                    <TableCell align="right">{product.weight}</TableCell>
+                    <TableCell>{product.stone?.name || '-'}</TableCell>
                     <TableCell>
-                      <Chip 
-                        label={product.status} 
-                        color={product.status.toLowerCase() === 'active' ? 'success' : 'error'}
-                        size="small"
-                      />
+                      {product.vendor ? `${product.vendor.fname} ${product.vendor.lname || ''}`.trim() : '-'}
                     </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleViewImages(product)}
-                          title="View Images"
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleEdit(product)}
-                          title="Edit Product"
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleDelete(product._id)}
-                          title="Delete Product"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell align="right">
+                      <IconButton onClick={() => handleViewImages(product)}>
+                        <VisibilityIcon />
+                      </IconButton>
+                      <IconButton onClick={() => handleEdit(product)}>
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton onClick={() => handleDelete(product._id)}>
+                        <DeleteIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -514,14 +506,14 @@ const Products = () => {
             />
           </Box>
 
-          {selected.length > 0 && (
+          {selectedProducts.length > 0 && (
             <Button
               variant="contained"
               color="error"
               onClick={handleDeleteSelected}
               sx={{ mt: 2 }}
             >
-              Delete selected ({selected.length})
+              Delete selected ({selectedProducts.length})
             </Button>
           )}
         </>
@@ -556,30 +548,22 @@ const Products = () => {
       </Dialog>
 
       {/* Summary Stats */}
-      <Paper sx={{ mt: 3, p: 2, bgcolor: '#1a1f2d', color: 'white' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Total Quantity ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})
-              </Typography>
-              <Typography variant="h4">
-                {totals.quantity}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Total Value ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})
-              </Typography>
-              <Typography variant="h4">
-                ${totals.price.toFixed(2)}
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
+      {selectedCategory !== 'all' && (
+        <Paper sx={{ mt: 2, p: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h6">Total Quantity ({selectedCategory})</Typography>
+            <Typography variant="h4">
+              {filteredProducts.reduce((sum, product) => sum + product.quantity, 0)}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="h6">Total Weight ({selectedCategory})</Typography>
+            <Typography variant="h4">
+              {filteredProducts.reduce((sum, product) => sum + (product.weight || 0), 0).toFixed(2)} g
+            </Typography>
+          </Box>
+        </Paper>
+      )}
     </Container>
   );
 };

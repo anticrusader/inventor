@@ -30,6 +30,8 @@ const AddProduct = () => {
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [stones, setStones] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState(null);
   const [product, setProduct] = useState({
@@ -39,26 +41,33 @@ const AddProduct = () => {
     quantity: '',
     description: '',
     status: 'active',
-    category: ''
+    category: '',
+    weight: '',
+    stone: '',
+    vendor: ''
   });
 
   useEffect(() => {
-    // Load categories when component mounts
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        setLoadingCategories(true);
-        setCategoryError(null);
-        const categories = await api.getCategories();
-        console.log('Categories loaded:', categories);
-        setCategories(categories || []);
+        const [categoriesData, stonesData, vendorsData] = await Promise.all([
+          api.getCategories(),
+          api.getStones(),
+          api.getVendors()
+        ]);
+        console.log('Stones Data:', stonesData);
+        console.log('Vendors Data:', vendorsData);
+        setCategories(categoriesData);
+        setStones(stonesData);
+        setVendors(vendorsData);
       } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategoryError('Failed to load categories');
+        console.error('Error fetching data:', error);
+        setCategoryError('Error loading form data');
       } finally {
         setLoadingCategories(false);
       }
     };
-    fetchCategories();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -71,7 +80,10 @@ const AddProduct = () => {
         quantity: editProduct.quantity,
         description: editProduct.description,
         status: editProduct.status.toLowerCase(),
-        category: editProduct.category
+        category: editProduct.category,
+        weight: editProduct.weight,
+        stone: editProduct.stone,
+        vendor: editProduct.vendor
       });
       
       // Load existing images
@@ -201,7 +213,7 @@ const AddProduct = () => {
     const { name, value } = e.target;
     setProduct(prev => ({
       ...prev,
-      [name]: name === 'price' || name === 'quantity' ? Number(value) : value
+      [name]: name === 'price' || name === 'quantity' || name === 'weight' ? Number(value) : value
     }));
   };
 
@@ -314,12 +326,12 @@ const AddProduct = () => {
                   label="Price"
                   name="price"
                   type="number"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">Rs.</InputAdornment>,
+                  }}
                   value={product.price}
                   onChange={handleInputChange}
                   required
-                  InputProps={{
-                    startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                  }}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -336,6 +348,69 @@ const AddProduct = () => {
             </Grid>
 
             <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Weight"
+                  name="weight"
+                  type="number"
+                  inputProps={{ step: "0.01" }}
+                  value={product.weight}
+                  onChange={handleInputChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth required>
+                  <InputLabel>Stone</InputLabel>
+                  <Select
+                    name="stone"
+                    value={product.stone}
+                    onChange={handleInputChange}
+                    label="Stone"
+                  >
+                    {stones.map((stone) => (
+                      <MenuItem key={stone._id} value={stone._id}>
+                        {stone.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth required>
+                  <InputLabel>Vendor</InputLabel>
+                  <Select
+                    name="vendor"
+                    value={product.vendor}
+                    onChange={handleInputChange}
+                    label="Vendor"
+                  >
+                    {vendors.map((vendor) => (
+                      <MenuItem key={vendor._id} value={vendor._id}>
+                        {`${vendor.fname} ${vendor.lname || ''}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              <Grid item xs={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    name="status"
+                    value={product.status}
+                    onChange={handleInputChange}
+                    label="Status"
+                  >
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="inactive">Inactive</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
               <Grid item xs={6}>
                 <FormControl fullWidth required>
                   <InputLabel>Category</InputLabel>
@@ -368,29 +443,19 @@ const AddProduct = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    name="status"
-                    value={product.status}
-                    onChange={handleInputChange}
-                    label="Status"
-                  >
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="inactive">Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
             </Grid>
 
-            <TextField
-              fullWidth
-              label="SKU"
-              name="sku"
-              value={product.sku}
-              onChange={handleInputChange}
-            />
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="SKU"
+                  name="sku"
+                  value={product.sku}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+            </Grid>
 
             <TextField
               fullWidth

@@ -18,14 +18,28 @@ const productSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
+  category: {
+    type: String,
+    required: true
+  },
+  weight: {
+    type: Number,
+    required: true
+  },
+  stone: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Stone',
+    required: true
+  },
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Vendor',
+    required: true
+  },
   status: {
     type: String,
     enum: ['active', 'inactive'],
     default: 'active'
-  },
-  category: {
-    type: String,
-    required: true
   },
   images: [{
     type: String

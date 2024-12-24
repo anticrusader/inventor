@@ -6,6 +6,14 @@ const fs = require('fs'); // Add this line to import fs module
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/auth');
 const categoriesRoutes = require('./routes/categories');
+const productsRouter = require('./routes/products');
+const stonesRouter = require('./routes/stones');
+const vendorsRouter = require('./routes/vendors');
+
+// Import models
+require('./models/Product');
+require('./models/Stone');
+require('./models/Vendor');
 
 // Set mongoose options to fix deprecation warnings
 mongoose.set('strictQuery', true);
@@ -39,7 +47,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount routes
 app.use('/api/auth', authRoutes);
-app.use('/api/categories', categoriesRoutes);  // Mount categories route first
+app.use('/api/categories', categoriesRoutes);  
+app.use('/api/products', productsRouter);
+app.use('/api/stones', stonesRouter);
+app.use('/api/vendors', vendorsRouter);
 app.use('/api', (req, res, next) => {
   console.log('API request received:', {
     method: req.method,

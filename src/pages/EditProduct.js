@@ -13,6 +13,7 @@ import {
   FormControl,
   InputLabel,
   Select,
+  InputAdornment
 } from '@mui/material';
 import ImageUpload from '../components/ImageUpload';
 import api from '../services/api';
@@ -25,39 +26,54 @@ const EditProduct = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [categories, setCategories] = useState([]);
-  
+  const [stones, setStones] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     quantity: '',
     category: '',
     description: '',
+    weight: '',
+    stone: '',
+    vendor: '',
     status: 'active',
     sku: '',
     images: [],
   });
 
   useEffect(() => {
-    const loadData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Load categories first
-        const categoriesData = await api.getCategories();
+        const [categoriesData, stonesData, vendorsData, productResponse] = await Promise.all([
+          api.getCategories(),
+          api.getStones(),
+          api.getVendors(),
+          api.getProduct(id),
+        ]);
+
         console.log('Loaded categories:', categoriesData);
         setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
-        // Then load product data
-        const productResponse = await api.getProduct(id);
+        setStones(stonesData);
+        setVendors(vendorsData);
+
         const product = productResponse.data;
-        
+        console.log('Loaded product:', product); // Debug log
+
         setFormData({
           name: product.name || '',
           price: product.price || '',
           quantity: product.quantity || '',
           category: product.category || '',
           description: product.description || '',
+          weight: product.weight || '',
+          stone: product.stone?._id || '',  // Get the stone ID
+          vendor: product.vendor?._id || '', // Get the vendor ID
           status: product.status || 'active',
           sku: product.sku || '',
           images: product.images ? product.images.map(img => ({
@@ -74,7 +90,7 @@ const EditProduct = () => {
       }
     };
 
-    loadData();
+    fetchData();
   }, [id]);
 
   const handleInputChange = (e) => {
@@ -94,52 +110,41 @@ const EditProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
-    setError(null);
-    setSuccess(false);
-
     try {
+      setSaving(true);
+      setError(null);
+
+      // Create FormData object
       const data = new FormData();
-      
-      // Add all non-image fields
-      Object.keys(formData).forEach(key => {
-        if (key !== 'images') {
-          data.append(key, formData[key]);
-        }
-      });
+      data.append('name', formData.name);
+      data.append('price', formData.price);
+      data.append('quantity', formData.quantity);
+      data.append('category', formData.category);
+      data.append('description', formData.description);
+      data.append('weight', formData.weight);
+      data.append('stone', formData.stone);  // Stone ID
+      data.append('vendor', formData.vendor); // Vendor ID
+      data.append('status', formData.status);
+      data.append('sku', formData.sku);
 
       // Handle existing images
       const existingImages = formData.images
         .filter(img => img.isExisting)
         .map(img => img.name);
-      
       data.append('existingImages', JSON.stringify(existingImages));
 
-      // Add new image files
-      formData.images
-        .filter(img => !img.isExisting && img.file)
-        .forEach(img => {
-          data.append('images', img.file);
-        });
+      // Add new images if any
+      const newImages = formData.images.filter(img => !img.isExisting);
+      newImages.forEach(img => {
+        data.append('images', img.file);
+      });
 
-      console.log('Submitting form data:');
-      console.log('- Existing images:', existingImages);
-      console.log('- Form fields:', Object.fromEntries(data.entries()));
-
-      const response = await api.updateProduct(id, data);
-      console.log('Update response:', response.data);
-      
-      if (response.data) {
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/products', { state: { refresh: true } });
-        }, 1500);
-      } else {
-        throw new Error('No response data received');
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-      setError(error.response?.data?.message || 'Failed to update product');
+      await api.updateProduct(id, data);
+      setSuccess(true);
+      setTimeout(() => navigate('/products'), 1500);
+    } catch (err) {
+      console.error('Error updating product:', err);
+      setError(err.message || 'Failed to update product');
     } finally {
       setSaving(false);
     }
@@ -191,6 +196,9 @@ const EditProduct = () => {
                 label="Price"
                 name="price"
                 type="number"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">Rs.</InputAdornment>,
+                }}
                 value={formData.price}
                 onChange={handleInputChange}
               />
@@ -234,6 +242,52 @@ const EditProduct = () => {
                 value={formData.description}
                 onChange={handleInputChange}
               />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Weight"
+                name="weight"
+                type="number"
+                inputProps={{ step: "0.01" }}
+                value={formData.weight}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required error={!formData.stone}>
+                <InputLabel>Stone</InputLabel>
+                <Select
+                  name="stone"
+                  value={formData.stone}
+                  onChange={handleInputChange}
+                  label="Stone"
+                >
+                  {stones.map((stone) => (
+                    <MenuItem key={stone._id} value={stone._id}>
+                      {stone.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required error={!formData.vendor}>
+                <InputLabel>Vendor</InputLabel>
+                <Select
+                  name="vendor"
+                  value={formData.vendor}
+                  onChange={handleInputChange}
+                  label="Vendor"
+                >
+                  {vendors.map((vendor) => (
+                    <MenuItem key={vendor._id} value={vendor._id}>
+                      {vendor.fname} {vendor.lname}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth required error={!formData.status}>

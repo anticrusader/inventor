@@ -200,6 +200,46 @@ const api = {
       throw error;
     }
   },
+
+  // Stones
+  async getStones() {
+    try {
+      const response = await axiosInstance.get('/stones');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting stones:', error);
+      throw error;
+    }
+  },
+  async addStone(stone) {
+    try {
+      const response = await axiosInstance.post('/stones', stone);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding stone:', error);
+      throw error;
+    }
+  },
+
+  // Vendors
+  async getVendors() {
+    try {
+      const response = await axiosInstance.get('/vendors');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting vendors:', error);
+      throw error;
+    }
+  },
+  async addVendor(vendor) {
+    try {
+      const response = await axiosInstance.post('/vendors', vendor);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding vendor:', error);
+      throw error;
+    }
+  }
 };
 
 export default api;

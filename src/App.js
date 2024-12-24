@@ -31,6 +31,8 @@ import AttributesValue from './pages/AttributesValue';
 import AddAttributes from './pages/AddAttributes';
 import Reports from './pages/Reports';
 import Categories from './pages/Categories';
+import AddStone from './pages/AddStone';
+import AddVendor from './pages/AddVendor';
 
 const theme = createTheme({
   palette: {
@@ -293,6 +295,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <AddCategory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-stone"
+            element={
+              <ProtectedRoute>
+                <AddStone />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-vendor"
+            element={
+              <ProtectedRoute>
+                <AddVendor />
               </ProtectedRoute>
             }
           />
