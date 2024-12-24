@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  IconButton,
+  Box,
   Menu,
   MenuItem,
   Avatar,
@@ -47,18 +47,24 @@ const ProfileMenu = () => {
 
   return (
     <>
-      <IconButton
-        size="large"
+      <Box
         onClick={handleMenu}
-        color="inherit"
-        aria-label="account of current user"
-        aria-controls="menu-appbar"
-        aria-haspopup="true"
+        sx={{ 
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center'
+        }}
       >
-        <Avatar sx={{ width: 32, height: 32, bgcolor: isAuthenticated ? 'primary.main' : 'grey.500' }}>
+        <Avatar 
+          sx={{ 
+            width: 32, 
+            height: 32, 
+            bgcolor: isAuthenticated ? 'primary.main' : 'grey.500'
+          }}
+        >
           {isAuthenticated ? user.username.charAt(0).toUpperCase() : '?'}
         </Avatar>
-      </IconButton>
+      </Box>
       <Menu
         id="menu-appbar"
         anchorEl={anchorEl}

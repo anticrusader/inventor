@@ -23,6 +23,7 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import StoreIcon from '@mui/icons-material/Store';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import logo from '../../assets/logo.png';
 
 const Header = () => {
   const location = useLocation();
@@ -140,13 +141,23 @@ const Header = () => {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           {/* Left section */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box
+              component="img"
+              src={logo}
+              alt="Bangles Jewellers"
+              sx={{
+                height: 45,
+                mr: 2,
+                filter: 'brightness(0) invert(0.8)', // This will make the logo light golden
+              }}
+            />
             <Typography
               variant="h6"
               noWrap
               component={Link}
               to="/"
               sx={{
-                mr: 2,
+                display: { xs: 'none', md: 'flex' },
                 fontFamily: 'Space Grotesk',
                 fontWeight: 700,
                 color: 'white',
@@ -165,17 +176,20 @@ const Header = () => {
                   onClick={() => handleNavClick(item.path)}
                   startIcon={item.icon}
                   endIcon={item.subItems && (
-                    <IconButton
-                      size="small"
-                      onClick={(e) => handleMenuClick(e, item.label)}
+                    <Box
+                      component="span"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMenuClick(e, item.label);
+                      }}
                       sx={{
-                        ml: -1,
-                        color: 'inherit',
-                        '&:hover': { backgroundColor: 'transparent' }
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer'
                       }}
                     >
                       <KeyboardArrowDownIcon />
-                    </IconButton>
+                    </Box>
                   )}
                   sx={{
                     color: location.pathname === item.path ? '#fff' : 'rgba(255,255,255,0.7)',

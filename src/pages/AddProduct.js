@@ -29,6 +29,7 @@ const AddProduct = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [categories, setCategories] = useState([]);
   const [stones, setStones] = useState([]);
   const [vendors, setVendors] = useState([]);
@@ -150,57 +151,29 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (loading) return;
 
     try {
+      setLoading(true);
       const formData = new FormData();
       
-      // Add product data
+      // Add all product fields
       Object.keys(product).forEach(key => {
-        if (product[key] !== undefined && product[key] !== null) {
+        if (product[key]) {
           formData.append(key, product[key]);
         }
       });
 
-      // Handle images based on whether it's edit mode or create mode
-      if (editMode) {
-        // Add existing image names that weren't removed
-        const existingImages = images
-          .filter(img => img.isExisting)
-          .map(img => img.name);
-        console.log('Existing images to keep:', existingImages);
-        formData.append('existingImages', JSON.stringify(existingImages));
-      }
-
-      // Add new images
-      const newImages = images.filter(img => !img.isExisting);
-      console.log('New images to upload:', newImages);
-      newImages.forEach(img => {
-        formData.append('images', img.file);
+      // Add images
+      imageFiles.forEach(file => {
+        formData.append('images', file);
       });
 
-      // Log formData contents
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      let response;
-      if (editMode) {
-        const productId = location.state.product._id;
-        console.log('Updating product:', productId);
-        response = await api.updateProduct(productId, formData);
-        console.log('Update response:', response.data);
-      } else {
-        console.log('Creating new product');
-        response = await api.addProduct(formData);
-        console.log('Create response:', response.data);
-      }
-
-      // Navigate back to products page with refresh flag
-      navigate('/products', { 
-        replace: true,
-        state: { refresh: true }
-      });
+      await api.addProduct(formData);
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/products');
+      }, 1500);
     } catch (error) {
       console.error('Error saving product:', error);
       alert(error.response?.data?.message || 'Error saving product. Please try again.');
@@ -451,8 +424,12 @@ const AddProduct = () => {
                   fullWidth
                   label="SKU"
                   name="sku"
-                  value={product.sku}
-                  onChange={handleInputChange}
+                  value={product.sku || 'Will be generated automatically'}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                  disabled
+                  helperText="SKU will be generated automatically based on vendor name"
                 />
               </Grid>
             </Grid>

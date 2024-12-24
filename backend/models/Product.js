@@ -45,7 +45,8 @@ const productSchema = new mongoose.Schema({
     type: String
   }],
   sku: {
-    type: String
+    type: String,
+    unique: true
   },
   store: {
     type: mongoose.Schema.Types.ObjectId,
@@ -61,6 +62,39 @@ const productSchema = new mongoose.Schema({
   }
 }, {
   collection: 'products' // Explicitly set collection name
+});
+
+// Function to generate a unique SKU
+async function generateSKU(vendorId) {
+  const vendor = await mongoose.model('Vendor').findById(vendorId);
+  if (!vendor) throw new Error('Vendor not found');
+  
+  const vendorPrefix = (vendor.fname.slice(0, 2)).toLowerCase();
+  
+  // Find the highest item code
+  const highestProduct = await mongoose.model('Product')
+    .findOne({ sku: new RegExp(`^${vendorPrefix}\\d{4}$`) })
+    .sort({ sku: -1 });
+  
+  let itemCode = '0001';
+  if (highestProduct && highestProduct.sku) {
+    const currentCode = parseInt(highestProduct.sku.slice(-4));
+    itemCode = String(currentCode + 1).padStart(4, '0');
+  }
+  
+  return `${vendorPrefix}${itemCode}`;
+}
+
+// Pre-save middleware to generate SKU
+productSchema.pre('save', async function(next) {
+  if (!this.sku) {
+    try {
+      this.sku = await generateSKU(this.vendor);
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
 });
 
 // Update the updatedAt timestamp before saving

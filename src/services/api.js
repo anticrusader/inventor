@@ -239,7 +239,10 @@ const api = {
       console.error('Error adding vendor:', error);
       throw error;
     }
-  }
+  },
+  generateSKU: (vendorId) => {
+    return axios.post(`${API_URL}/products/generate-sku`, { vendorId });
+  },
 };
 
 export default api;

@@ -93,12 +93,21 @@ const EditProduct = () => {
     fetchData();
   }, [id]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = async (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // If vendor changes, generate new SKU
+    if (name === 'vendor' && value) {
+      try {
+        const response = await api.generateSKU(value);
+        if (response.data && response.data.sku) {
+          setFormData(prev => ({ ...prev, sku: response.data.sku }));
+        }
+      } catch (error) {
+        console.error('Error generating new SKU:', error);
+      }
+    }
   };
 
   const handleImageChange = (newImages) => {
@@ -114,7 +123,6 @@ const EditProduct = () => {
       setSaving(true);
       setError(null);
 
-      // Create FormData object
       const data = new FormData();
       data.append('name', formData.name);
       data.append('price', formData.price);
@@ -122,8 +130,8 @@ const EditProduct = () => {
       data.append('category', formData.category);
       data.append('description', formData.description);
       data.append('weight', formData.weight);
-      data.append('stone', formData.stone);  // Stone ID
-      data.append('vendor', formData.vendor); // Vendor ID
+      data.append('stone', formData.stone);
+      data.append('vendor', formData.vendor);
       data.append('status', formData.status);
       data.append('sku', formData.sku);
 
@@ -310,7 +318,11 @@ const EditProduct = () => {
                 label="SKU"
                 name="sku"
                 value={formData.sku}
-                onChange={handleInputChange}
+                InputProps={{
+                  readOnly: true,
+                }}
+                disabled
+                helperText="SKU is generated automatically and cannot be modified"
               />
             </Grid>
             <Grid item xs={12}>

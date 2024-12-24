@@ -9,6 +9,7 @@ import {
   Alert,
 } from '@mui/material';
 import axios from 'axios';
+import logo from '../assets/logo.png';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ const Login = () => {
       justifyContent: 'center',
       backgroundColor: '#0A0D1C',
     }}>
-      <Container component="main" maxWidth="xs">
+      <Container maxWidth="xs">
         <Box
           sx={{
             display: 'flex',
@@ -66,6 +67,16 @@ const Login = () => {
             borderRadius: 2,
           }}
         >
+          <Box
+            component="img"
+            src={logo}
+            alt="Bangles Jewellers"
+            sx={{
+              height: 100,
+              mb: 4,
+              filter: 'brightness(0) invert(0.7)', // This will make the logo light golden
+            }}
+          />
           <Typography component="h1" variant="h5" sx={{ color: 'white', mb: 3 }}>
             Sign in to Inventor
           </Typography>

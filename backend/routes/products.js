@@ -180,4 +180,38 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Generate SKU for vendor
+router.post('/generate-sku', async (req, res) => {
+  try {
+    const { vendorId } = req.body;
+    if (!vendorId) {
+      return res.status(400).json({ message: 'Vendor ID is required' });
+    }
+
+    const vendor = await mongoose.model('Vendor').findById(vendorId);
+    if (!vendor) {
+      return res.status(404).json({ message: 'Vendor not found' });
+    }
+
+    const vendorPrefix = (vendor.fname.slice(0, 2)).toLowerCase();
+    
+    // Find the highest item code for this vendor
+    const highestProduct = await Product
+      .findOne({ sku: new RegExp(`^${vendorPrefix}\\d{4}$`) })
+      .sort({ sku: -1 });
+    
+    let itemCode = '0001';
+    if (highestProduct && highestProduct.sku) {
+      const currentCode = parseInt(highestProduct.sku.slice(-4));
+      itemCode = String(currentCode + 1).padStart(4, '0');
+    }
+    
+    const newSku = `${vendorPrefix}${itemCode}`;
+    res.json({ sku: newSku });
+  } catch (error) {
+    console.error('Error generating SKU:', error);
+    res.status(500).json({ message: 'Error generating SKU', error: error.message });
+  }
+});
+
 module.exports = router;
