@@ -52,12 +52,31 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [outOfStock, setOutOfStock] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const rowsPerPage = 10;
 
   // Fetch products
   useEffect(() => {
     fetchProducts();
   }, [location.state?.refresh]); // Re-fetch when refresh flag changes
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const data = await api.getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   /**
    * Fetches products from the API and updates the local state.
@@ -147,33 +166,33 @@ const Products = () => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Status filter
-      let matchesStatus = true;
-      if (filterStatus !== 'all') {
-        matchesStatus = product.status.toLowerCase() === filterStatus;
-      }
+      // Category filter
+      const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
       
-      // Type filter
+      // Out of stock filter
       let matchesType = true;
-      if (filterType === 'total') {
-        matchesType = true;
-      } else if (filterType === 'active') {
-        matchesType = product.status.toLowerCase() === 'active';
-      } else if (filterType === 'inactive') {
-        matchesType = product.status.toLowerCase() === 'inactive';
-      } else if (outOfStock) {
+      if (outOfStock) {
         matchesType = product.quantity === 0;
       }
       
-      return matchesSearch && matchesStatus && matchesType;
+      return matchesSearch && matchesCategory && matchesType;
     });
-  }, [products, searchQuery, filterStatus, filterType, outOfStock]);
+  }, [products, searchQuery, selectedCategory, outOfStock]);
 
   // Calculate pagination
   const paginatedProducts = useMemo(() => {
     const startIndex = (page - 1) * rowsPerPage;
     return filteredProducts.slice(startIndex, startIndex + rowsPerPage);
   }, [filteredProducts, page]);
+
+  // Calculate totals for filtered products
+  const totals = useMemo(() => {
+    return filteredProducts.reduce((acc, product) => {
+      acc.quantity += product.quantity;
+      acc.price += product.price * product.quantity;
+      return acc;
+    }, { quantity: 0, price: 0 });
+  }, [filteredProducts]);
 
   // Handle checkbox selection
   const handleSelectAll = (event) => {
@@ -236,6 +255,7 @@ const Products = () => {
         </Button>
       </Box>
 
+      
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
@@ -329,19 +349,21 @@ const Products = () => {
         <Box sx={{ 
           display: 'flex',
           gap: 1,
+          overflowX: 'auto',
           '& .MuiButton-root': {
             minWidth: 'auto',
             px: 2,
             py: 0.5,
             borderRadius: '20px',
             textTransform: 'none',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            whiteSpace: 'nowrap'
           }
         }}>
           <Button
-            variant={filterStatus === 'all' ? 'contained' : 'outlined'}
+            variant={selectedCategory === 'all' ? 'contained' : 'outlined'}
             onClick={() => {
-              setFilterStatus('all');
+              setSelectedCategory('all');
               setFilterType(null);
               setOutOfStock(false);
             }}
@@ -349,28 +371,20 @@ const Products = () => {
           >
             All
           </Button>
-          <Button
-            variant={filterStatus === 'active' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setFilterStatus('active');
-              setFilterType(null);
-              setOutOfStock(false);
-            }}
-            color="primary"
-          >
-            Active
-          </Button>
-          <Button
-            variant={filterStatus === 'inactive' ? 'contained' : 'outlined'}
-            onClick={() => {
-              setFilterStatus('inactive');
-              setFilterType(null);
-              setOutOfStock(false);
-            }}
-            color="primary"
-          >
-            Inactive
-          </Button>
+          {categories.map((category) => (
+            <Button
+              key={category._id}
+              variant={selectedCategory === category.name ? 'contained' : 'outlined'}
+              onClick={() => {
+                setSelectedCategory(category.name);
+                setFilterType(null);
+                setOutOfStock(false);
+              }}
+              color="primary"
+            >
+              {category.name}
+            </Button>
+          ))}
         </Box>
       </Box>
 
@@ -499,6 +513,7 @@ const Products = () => {
               onChange={(e, newPage) => setPage(newPage)}
             />
           </Box>
+
           {selected.length > 0 && (
             <Button
               variant="contained"
@@ -539,6 +554,32 @@ const Products = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Summary Stats */}
+      <Paper sx={{ mt: 3, p: 2, bgcolor: '#1a1f2d', color: 'white' }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Total Quantity ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})
+              </Typography>
+              <Typography variant="h4">
+                {totals.quantity}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Total Value ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})
+              </Typography>
+              <Typography variant="h4">
+                ${totals.price.toFixed(2)}
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
     </Container>
   );
 };
