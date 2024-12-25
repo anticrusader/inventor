@@ -1,13 +1,16 @@
 import axios from 'axios';
+import config from '../config';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = config.API_URL;
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 30000,
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
 });
 
@@ -46,9 +49,7 @@ axiosInstance.interceptors.response.use(
 // Test the server connection
 const testConnection = async () => {
   try {
-    const response = await axios.get('http://localhost:5001/test', { 
-      withCredentials: true 
-    });
+    const response = await axiosInstance.get('/test');
     console.log('Server test successful:', response.data);
     return true;
   } catch (error) {
@@ -67,17 +68,26 @@ const api = {
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
-    return axiosInstance.get('/dashboard/stats');
+    const response = await axiosInstance.get('/dashboard/stats');
+    return response.data;
   },
   
   // Products
-  getProducts: () => axiosInstance.get('/products'),
+  getProducts: async () => {
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      throw new Error('Cannot connect to server. Please check if the server is running.');
+    }
+    const response = await axiosInstance.get('/products');
+    return response.data;
+  },
   getProduct: async (id) => {
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
-    return axiosInstance.get(`/products/${id}`);
+    const response = await axiosInstance.get(`/products/${id}`);
+    return response.data;
   },
   addProduct: async (formData) => {
     const isConnected = await testConnection();
@@ -92,7 +102,8 @@ const api = {
       timeout: 45000
     };
     
-    return axiosInstance.post('/products', formData, config);
+    const response = await axiosInstance.post('/products', formData, config);
+    return response.data;
   },
   updateProduct: async (id, formData) => {
     const isConnected = await testConnection();
@@ -107,14 +118,16 @@ const api = {
       timeout: 45000
     };
 
-    return axiosInstance.put(`/products/${id}`, formData, config);
+    const response = await axiosInstance.put(`/products/${id}`, formData, config);
+    return response.data;
   },
   deleteProduct: async (id) => {
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
-    return axiosInstance.delete(`/products/${id}`);
+    const response = await axiosInstance.delete(`/products/${id}`);
+    return response.data;
   },
 
   // Categories

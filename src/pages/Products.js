@@ -90,21 +90,20 @@ const Products = () => {
       setLoading(true);
       // Make API call to fetch products
       const response = await api.getProducts();
-      console.log('Fetched products:', response.data);
+      console.log('Fetched products:', response);
       // Update local state with the fetched products
-      setProducts(response.data);
+      setProducts(response.data || []);
       // Clear any error messages
       setError(null);
       // If location state contains a refresh flag, remove it
       if (location.state?.refresh) {
         navigate(location.pathname, { replace: true });
       }
-    } catch (err) {
-      // If there is an error, log it and set an error message in state
-      console.error('Error fetching products:', err);
+    } catch (error) {
+      console.error('Error fetching products:', error);
       setError('Failed to fetch products');
+      setProducts([]);
     } finally {
-      // Set loading state to false, regardless of success or error
       setLoading(false);
     }
   };
