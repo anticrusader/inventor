@@ -5,9 +5,9 @@
   "dependencies": {
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.16.12",
-    "@mui/lab": "^6.0.0-beta.20",
-    "@mui/material": "^5.13.0",
+    "@mui/icons-material": "^5.15.0",
+    "@mui/lab": "^5.0.0-alpha.155",
+    "@mui/material": "^5.15.0",
     "@reduxjs/toolkit": "^1.9.5",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
@@ -25,11 +25,11 @@
   },
   "scripts": {
     "start": "node backend/server.js",
-    "build": "CI=false && npm install && react-scripts build",
+    "build": "CI=false && npm install --legacy-peer-deps && react-scripts build",
     "dev": "react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "install-all": "npm install && cd backend && npm install"
+    "install-all": "npm install --legacy-peer-deps && cd backend && npm install"
   },
   "eslintConfig": {
     "extends": [
