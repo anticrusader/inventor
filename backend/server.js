@@ -14,16 +14,17 @@ const profileRoutes = require('./routes/profile');
 
 // Connect to MongoDB with retry logic
 const connectDB = async () => {
+  const mongoURI = process.env.MONGODB_URI;
+  console.log('Attempting to connect to MongoDB...');
+  
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    await mongoose.connect(mongoURI, {
       serverSelectionTimeoutMS: 5000,
       retryWrites: true,
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log('MongoDB Connected Successfully');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error.message);
     // Retry connection after 5 seconds
     setTimeout(connectDB, 5000);
   }
