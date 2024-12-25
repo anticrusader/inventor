@@ -2,6 +2,14 @@
   "name": "inventor",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "cd backend && npm install && node server.js",
+    "build": "CI=false && npm install --legacy-peer-deps && react-scripts build",
+    "dev": "react-scripts start",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "install-all": "npm install --legacy-peer-deps && cd backend && npm install"
+  },
   "dependencies": {
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
@@ -25,14 +33,6 @@
     "react-scripts": "5.0.1",
     "recharts": "^2.15.0",
     "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "start": "node backend/server.js",
-    "build": "CI=false && npm install --legacy-peer-deps && react-scripts build",
-    "dev": "react-scripts start",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "install-all": "npm install --legacy-peer-deps && cd backend && npm install"
   },
   "eslintConfig": {
     "extends": [
