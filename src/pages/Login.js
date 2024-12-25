@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import logo from '../assets/logo.png';
+import config from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/login', formData, {
+      const response = await axios.post(`${config.API_URL}/auth/login`, formData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'

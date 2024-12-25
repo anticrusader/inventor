@@ -34,6 +34,13 @@ connectDB();
 
 const app = express();
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // CORS configuration
 app.use(cors({
   origin: ['https://inventor-dv3d.onrender.com', 'http://localhost:3000'],
