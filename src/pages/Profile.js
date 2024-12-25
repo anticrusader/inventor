@@ -108,6 +108,26 @@ const Profile = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    try {
+      const response = await axios.post('http://localhost:5001/api/auth/forgot-password', {
+        email: personalInfo.email
+      });
+
+      if (response.data.success) {
+        setMessage({ 
+          type: 'success', 
+          text: 'Password reset link has been sent to your email' 
+        });
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Error sending password reset link'
+      });
+    }
+  };
+
   const resetPersonalInfo = () => {
     setPersonalInfo({
       username: user.username || '',
@@ -361,6 +381,22 @@ const Profile = () => {
                     },
                   }}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleForgotPassword}
+                  sx={{
+                    mt: 2,
+                    bgcolor: '#10B981',
+                    '&:hover': {
+                      bgcolor: '#059669',
+                    },
+                  }}
+                >
+                  Forgot Password?
+                </Button>
               </Grid>
             </Grid>
           </Paper>
