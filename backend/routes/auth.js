@@ -243,9 +243,10 @@ router.post('/change-password', async (req, res) => {
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
-    console.log('Forgot password request for email:', email);
+    console.log('Received forgot password request for email:', email);
 
     if (!email) {
+      console.log('Email is missing in request');
       return res.status(400).json({
         success: false,
         message: 'Email is required'
@@ -255,20 +256,30 @@ router.post('/forgot-password', async (req, res) => {
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('No user found with email:', email);
       return res.status(404).json({
         success: false,
         message: 'No user found with this email'
       });
     }
+    console.log('Found user:', user._id);
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-    await user.save();
+
+    try {
+      await user.save();
+      console.log('Reset token saved for user');
+    } catch (saveError) {
+      console.error('Error saving reset token:', saveError);
+      throw saveError;
+    }
 
     // Create reset URL
     const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    console.log('Generated reset URL:', resetUrl);
 
     // Send email
     const mailOptions = {
@@ -283,18 +294,24 @@ router.post('/forgot-password', async (req, res) => {
       `
     };
 
-    await sendEmail(mailOptions);
-    console.log('Password reset email sent to:', email);
-
-    res.json({
-      success: true,
-      message: 'Password reset link sent to email'
-    });
+    try {
+      console.log('Attempting to send email...');
+      await sendEmail(mailOptions);
+      console.log('Email sent successfully');
+      
+      res.json({
+        success: true,
+        message: 'Password reset link sent to email'
+      });
+    } catch (emailError) {
+      console.error('Error sending email:', emailError);
+      throw emailError;
+    }
   } catch (error) {
-    console.error('Error in forgot password:', error);
+    console.error('Full error details:', error);
     res.status(500).json({
       success: false,
-      message: 'Error sending password reset email'
+      message: error.message || 'Error sending password reset email'
     });
   }
 });

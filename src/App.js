@@ -34,6 +34,7 @@ import Reports from './pages/Reports';
 import Categories from './pages/Categories';
 import AddStone from './pages/AddStone';
 import AddVendor from './pages/AddVendor';
+import ResetPassword from './pages/ResetPassword';
 
 const theme = createTheme({
   palette: {
@@ -193,6 +194,7 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* Protected Routes */}
           <Route
