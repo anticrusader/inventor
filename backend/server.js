@@ -1,108 +1,65 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const fs = require('fs');
-const dotenv = require('dotenv');
 const cors = require('cors');
+require('dotenv').config();
 
 // Import routes
 const authRoutes = require('./routes/auth');
-const categoriesRoutes = require('./routes/categories');
-const productsRouter = require('./routes/products');
-const stonesRouter = require('./routes/stones');
-const vendorsRouter = require('./routes/vendors');
-const profileRouter = require('./routes/profile');
+const productRoutes = require('./routes/products');
+const categoryRoutes = require('./routes/categories');
+const stoneRoutes = require('./routes/stones');
+const vendorRoutes = require('./routes/vendors');
+const profileRoutes = require('./routes/profile');
 
-// Import models
-require('./models/Product');
-require('./models/Stone');
-require('./models/Vendor');
-
-// Set mongoose options to fix deprecation warnings
-mongoose.set('strictQuery', true);
-
-// Load environment variables
-dotenv.config();
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('Could not connect to MongoDB:', err));
 
 const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200
+  origin: process.env.NODE_ENV === 'production'
+    ? process.env.FRONTEND_URL
+    : 'http://localhost:3000'
 }));
 
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads', 'products');
+// Create uploads directory if it doesn't exist
+const fs = require('fs');
+const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Serve static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(uploadsDir));
 
-// Mount routes
+// API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/categories', categoriesRoutes);
-app.use('/api/products', productsRouter);
-app.use('/api/stones', stonesRouter);
-app.use('/api/vendors', vendorsRouter);
-app.use('/api/profile', profileRouter);
-app.use('/api', (req, res, next) => {
-  console.log('API request received:', {
-    method: req.method,
-    url: req.url,
-    path: req.path
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/stones', stoneRoutes);
+app.use('/api/vendors', vendorRoutes);
+app.use('/api/profile', profileRoutes);
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve frontend static files
+  app.use(express.static(path.join(__dirname, '../build')));
+
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../build', 'index.html'));
   });
-  next();
+}
+
+const port = process.env.PORT || 5001;
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on port ${port}`);
 });
-
-// Test route
-app.get('/api/test', (req, res) => {
-  console.log('Test route hit');
-  res.json({ message: 'Server is running' });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
-
-// Connect to MongoDB and start server
-const startServer = async () => {
-  try {
-    console.log('Connecting to MongoDB...');
-    
-    const mongoUri = 'mongodb://127.0.0.1:27017/inventor';
-    console.log('MongoDB URI:', mongoUri);
-    
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    
-    console.log('Connected to MongoDB successfully');
-    
-    const PORT = 5001;
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
-
-startServer();
