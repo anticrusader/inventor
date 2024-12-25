@@ -29,11 +29,90 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Login route
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    console.log('Login attempt for:', username);
+
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username and password are required'
+      });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      console.log('User not found:', username);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log('Password mismatch for user:', username);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Set session cookie
+    req.session = {
+      userId: user._id,
+      username: user.username
+    };
+
+    console.log('Login successful for:', username);
+    res.json({ 
+      success: true,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during login'
+    });
+  }
+});
+
+// Logout route
+router.post('/logout', (req, res) => {
+  try {
+    req.session = null;
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during logout'
+    });
+  }
+});
+
 // Add user route
 router.post('/add-user', async (req, res) => {
   try {
     const { username, password, email } = req.body;
     
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username and password are required'
+      });
+    }
+
     // Check if user already exists
     let user = await User.findOne({ username });
     if (user) {
@@ -68,49 +147,7 @@ router.post('/add-user', async (req, res) => {
     console.error('Add user error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error'
-    });
-  }
-});
-
-// Login route
-router.post('/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    console.log('Login attempt for:', username);
-
-    const user = await User.findOne({ username });
-    if (!user) {
-      console.log('User not found:', username);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log('Password mismatch for user:', username);
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    console.log('Login successful for:', username);
-    res.json({ 
-      success: true,
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
+      message: 'Server error during user creation'
     });
   }
 });

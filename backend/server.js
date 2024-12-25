@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 // Import routes
@@ -14,11 +15,13 @@ const profileRoutes = require('./routes/profile');
 
 // Connect to MongoDB with retry logic
 const connectDB = async () => {
-  const mongoURI = process.env.MONGODB_URI;
+  const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/inventor';
   console.log('Attempting to connect to MongoDB...');
   
   try {
     await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       retryWrites: true,
     });
@@ -46,7 +49,6 @@ app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
       'https://inventor-dv3d.onrender.com',
-      'https://inventor-frontend-dv3d.onrender.com',
       'http://localhost:3000'
     ];
     
@@ -66,12 +68,10 @@ app.use(cors({
   maxAge: 86400 // 24 hours
 }));
 
-// Add cookie parser
-app.use(require('cookie-parser')());
-
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Create uploads directory if it doesn't exist
 const fs = require('fs');
@@ -90,6 +90,11 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/stones', stoneRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/profile', profileRoutes);
+
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working' });
+});
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
@@ -115,4 +120,6 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 5001;
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('MongoDB URI:', process.env.MONGODB_URI);
 });
