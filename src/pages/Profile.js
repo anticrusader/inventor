@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -6,26 +6,122 @@ import {
   Typography,
   TextField,
   Button,
-  Avatar,
   Box,
-  Stack,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
+  Alert,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
-
-const socialPlatforms = [
-  { name: 'Facebook', icon: '/facebook-icon.svg' },
-  { name: 'Twitter', icon: '/twitter-icon.svg' },
-  { name: 'LinkedIn', icon: '/linkedin-icon.svg' },
-];
+import axios from 'axios';
 
 const Profile = () => {
-  const [profileImage, setProfileImage] = useState('/default-avatar.jpg');
+  const [personalInfo, setPersonalInfo] = useState({
+    username: '',
+    email: '',
+  });
+  const [passwordInfo, setPasswordInfo] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [loading, setLoading] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    setPersonalInfo({
+      username: user.username || '',
+      email: user.email || '',
+    });
+  }, [user]);
+
+  const handlePersonalInfoChange = (e) => {
+    const { name, value } = e.target;
+    setPersonalInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateEmail = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post('http://localhost:5001/api/auth/update-email', {
+        userId: user._id,
+        email: personalInfo.email
+      });
+
+      if (response.data.success) {
+        // Update local storage
+        const updatedUser = {
+          ...user,
+          email: personalInfo.email
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setMessage({ type: 'success', text: 'Email updated successfully' });
+      }
+    } catch (error) {
+      console.error('Error updating email:', error);
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Error updating email'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    try {
+      if (passwordInfo.newPassword !== passwordInfo.confirmPassword) {
+        setMessage({ type: 'error', text: 'New passwords do not match' });
+        return;
+      }
+
+      setLoading(true);
+      const response = await axios.post('http://localhost:5001/api/auth/change-password', {
+        userId: user._id,
+        currentPassword: passwordInfo.currentPassword,
+        newPassword: passwordInfo.newPassword
+      });
+
+      if (response.data.success) {
+        setMessage({ type: 'success', text: 'Password updated successfully' });
+        setPasswordInfo({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Error updating password'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPersonalInfo = () => {
+    setPersonalInfo({
+      username: user.username || '',
+      email: user.email || ''
+    });
+  };
+
+  const resetPasswordInfo = () => {
+    setPasswordInfo({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
@@ -33,240 +129,240 @@ const Profile = () => {
         Profile
       </Typography>
 
-      <Grid container spacing={4}>
-        {/* Left Column */}
-        <Grid item xs={12} md={6}>
-          {/* Personal Information */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h6">Personal Information</Typography>
-              <Box>
-                <Button variant="outlined" sx={{ mr: 1 }}>Reset</Button>
-                <Button variant="contained">Save</Button>
-              </Box>
-            </Box>
+      {message.text && (
+        <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ type: '', text: '' })}>
+          {message.text}
+        </Alert>
+      )}
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-              <Box sx={{ position: 'relative', mr: 2 }}>
-                <Avatar
-                  src={profileImage}
-                  sx={{ width: 100, height: 100 }}
-                />
-                <Typography
-                  component="label"
-                  sx={{
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                    display: 'block',
-                    mt: 1,
-                    textAlign: 'center',
+      <Grid container spacing={4}>
+        {/* Left Column - Personal Information */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3, mb: 3, backgroundColor: '#1A1F2D' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+              <Typography variant="h6" sx={{ color: 'white' }}>Personal Information</Typography>
+              <Box>
+                <Button 
+                  variant="outlined" 
+                  onClick={resetPersonalInfo}
+                  sx={{ 
+                    mr: 1,
+                    color: '#10B981',
+                    borderColor: '#10B981',
+                    '&:hover': {
+                      borderColor: '#059669',
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    }
                   }}
                 >
-                  Change picture
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        setProfileImage(URL.createObjectURL(e.target.files[0]));
-                      }
-                    }}
-                  />
-                </Typography>
+                  Reset
+                </Button>
+                <Button 
+                  variant="contained"
+                  onClick={handleUpdateEmail}
+                  disabled={loading}
+                  sx={{
+                    bgcolor: '#FE8A00',
+                    '&:hover': {
+                      bgcolor: '#E67A00',
+                    },
+                  }}
+                >
+                  Update
+                </Button>
               </Box>
-              <Button
-                startIcon={<DeleteIcon />}
-                color="error"
-                sx={{ alignSelf: 'flex-start' }}
-              >
-                Delete
-              </Button>
             </Box>
 
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="First Name"
-                  placeholder="Enter First Name"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  placeholder="Enter Last Name"
+                  label="Username"
+                  name="username"
+                  value={personalInfo.username}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '& input': {
+                        color: 'white',
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Email"
-                  placeholder="Enter Email"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="User Name"
-                  placeholder="Enter User Name"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Password"
-                  type="password"
-                  placeholder="Enter Password"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Bio"
-                  placeholder="Bio"
-                  multiline
-                  rows={3}
-                  helperText="Brief description for your profile URLs are hyperlinked"
+                  name="email"
+                  type="email"
+                  value={personalInfo.email}
+                  onChange={handlePersonalInfoChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '& input': {
+                        color: 'white',
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
                 />
               </Grid>
             </Grid>
           </Paper>
-
-          {/* Social Links */}
-          <Paper sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h6">Social</Typography>
-              <Button startIcon={<AddIcon />}>Add</Button>
-            </Box>
-
-            <Stack spacing={2}>
-              {socialPlatforms.map((platform, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                  }}
-                >
-                  <Avatar src={platform.icon} sx={{ width: 40, height: 40 }} />
-                  <Typography>{platform.name}</Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ ml: 'auto' }}
-                    startIcon={<CloseIcon />}
-                  >
-                    Remove
-                  </Button>
-                </Box>
-              ))}
-            </Stack>
-          </Paper>
         </Grid>
 
-        {/* Right Column */}
+        {/* Right Column - Password */}
         <Grid item xs={12} md={6}>
-          {/* Password Section */}
-          <Paper sx={{ p: 3, mb: 3 }}>
+          <Paper sx={{ p: 3, backgroundColor: '#1A1F2D' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h6">Password</Typography>
+              <Typography variant="h6" sx={{ color: 'white' }}>Password</Typography>
               <Box>
-                <Button variant="outlined" sx={{ mr: 1 }}>Reset</Button>
-                <Button variant="contained">Save</Button>
+                <Button 
+                  variant="outlined" 
+                  onClick={resetPasswordInfo}
+                  sx={{ 
+                    mr: 1,
+                    color: '#10B981',
+                    borderColor: '#10B981',
+                    '&:hover': {
+                      borderColor: '#059669',
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    }
+                  }}
+                >
+                  Reset
+                </Button>
+                <Button 
+                  variant="contained"
+                  onClick={handleUpdatePassword}
+                  disabled={loading}
+                  sx={{
+                    bgcolor: '#FE8A00',
+                    '&:hover': {
+                      bgcolor: '#E67A00',
+                    },
+                  }}
+                >
+                  Update
+                </Button>
               </Box>
             </Box>
 
-            <Stack spacing={2}>
-              <TextField
-                fullWidth
-                label="Current password"
-                type="password"
-                placeholder="Enter Current password"
-              />
-              <TextField
-                fullWidth
-                label="New Password"
-                type="password"
-                placeholder="Enter New Password"
-              />
-              <TextField
-                fullWidth
-                label="Re-type New Password"
-                type="password"
-                placeholder="Enter Re-type New Password"
-              />
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                sx={{ bgcolor: 'navy' }}
-              >
-                Forgot Password
-              </Button>
-              <Button
-                fullWidth
-                variant="contained"
-                color="primary"
-                sx={{ bgcolor: 'navy' }}
-              >
-                Notification Management
-              </Button>
-            </Stack>
-          </Paper>
-
-          {/* Notification Management */}
-          <Paper sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-              <Typography variant="h6">Notification Management</Typography>
-              <Button startIcon={<FilterAltOutlinedIcon />}>Filter</Button>
-            </Box>
-
-            <Typography variant="subtitle2" sx={{ mb: 2 }}>Users Management</Typography>
-            <FormGroup>
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Users - Create and Manage Users (e.g., admin)"
-              />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Roles - Create and Manage Users (e.g., admin)"
-              />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Profiles - Create and Manage user profiles (e.g., GSA Store Manager, etc.)"
-              />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Groups - Create and Manage User groups"
-              />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Default Organization Sharing Access - Setting Default Sharing Access within the Organization"
-              />
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Field Accessibility - Setting Field Accessibility for user profiles"
-              />
-            </FormGroup>
-
-            <Typography variant="subtitle2" sx={{ mt: 3, mb: 2 }}>Manage stock</Typography>
-            <FormGroup>
-              <FormControlLabel
-                control={<Checkbox />}
-                label="Enable stock management"
-              />
-            </FormGroup>
-
-            <Typography variant="subtitle2" sx={{ mt: 3, mb: 2 }}>Hold stock (minutes)</Typography>
-            <FormGroup>
-              <FormControlLabel
-                control={<Checkbox />}
-                label="60 - Reducing the reward orders by 1 minute. When this limit is reached, the pending order will be cancelled."
-              />
-            </FormGroup>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Current Password"
+                  name="currentPassword"
+                  type="password"
+                  value={passwordInfo.currentPassword}
+                  onChange={handlePasswordChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '& input': {
+                        color: 'white',
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="New Password"
+                  name="newPassword"
+                  type="password"
+                  value={passwordInfo.newPassword}
+                  onChange={handlePasswordChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '& input': {
+                        color: 'white',
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Confirm New Password"
+                  name="confirmPassword"
+                  type="password"
+                  value={passwordInfo.confirmPassword}
+                  onChange={handlePasswordChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#10B981',
+                      },
+                      '& input': {
+                        color: 'white',
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                />
+              </Grid>
+            </Grid>
           </Paper>
         </Grid>
       </Grid>

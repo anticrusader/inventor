@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -7,17 +6,17 @@ import {
   Button,
   Typography,
   Alert,
+  Paper,
 } from '@mui/material';
 import axios from 'axios';
-import logo from '../assets/logo.png';
 
-const Login = () => {
-  const navigate = useNavigate();
+const AddUser = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
+    email: '',
   });
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -29,27 +28,29 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setMessage({ type: '', text: '' });
 
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/login', formData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        withCredentials: true
-      });
-      
+      const response = await axios.post('http://localhost:5001/api/auth/add-user', formData);
+
       if (response.data.success) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/');
-      } else {
-        setError('Invalid credentials');
+        setMessage({
+          type: 'success',
+          text: 'User added successfully'
+        });
+        // Clear form
+        setFormData({
+          username: '',
+          password: '',
+          email: '',
+        });
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Login failed. Please check your credentials and try again.');
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Error adding user'
+      });
     } finally {
       setLoading(false);
     }
@@ -62,35 +63,31 @@ const Login = () => {
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: '#0A0D1C',
+      pt: 8,
+      pb: 6,
     }}>
-      <Container maxWidth="xs">
-        <Box
+      <Container maxWidth="sm">
+        <Paper
+          elevation={3}
           sx={{
+            p: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             backgroundColor: '#1A1F2D',
-            padding: 4,
-            borderRadius: 2,
           }}
         >
-          <Box
-            component="img"
-            src={logo}
-            alt="Bangles Jewellers"
-            sx={{
-              height: 100,
-              mb: 4,
-              filter: 'brightness(0) invert(0.7)', // This will make the logo light golden
-            }}
-          />
           <Typography component="h1" variant="h5" sx={{ color: 'white', mb: 3 }}>
-            Sign in to Inventor
+            Add New User
           </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
+          {message.text && (
+            <Alert 
+              severity={message.type} 
+              sx={{ width: '100%', mb: 2 }}
+              onClose={() => setMessage({ type: '', text: '' })}
+            >
+              {message.text}
             </Alert>
           )}
 
@@ -114,9 +111,6 @@ const Login = () => {
                   '&:hover fieldset': {
                     borderColor: 'rgba(255, 255, 255, 0.23)',
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#1976d2',
-                  },
                 },
                 '& .MuiInputLabel-root': {
                   color: 'rgba(255, 255, 255, 0.7)',
@@ -134,7 +128,7 @@ const Login = () => {
               label="Password"
               type="password"
               id="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               sx={{
@@ -145,8 +139,32 @@ const Login = () => {
                   '&:hover fieldset': {
                     borderColor: 'rgba(255, 255, 255, 0.23)',
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#1976d2',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiOutlinedInput-input': {
+                  color: 'white',
+                },
+              }}
+            />
+            <TextField
+              margin="normal"
+              fullWidth
+              name="email"
+              label="Email (Optional)"
+              type="email"
+              id="email"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.23)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.23)',
                   },
                 },
                 '& .MuiInputLabel-root': {
@@ -162,22 +180,15 @@ const Login = () => {
               fullWidth
               variant="contained"
               disabled={loading}
-              sx={{ 
-                mt: 3, 
-                mb: 2,
-                backgroundColor: '#FF9900',
-                '&:hover': {
-                  backgroundColor: '#FF8C00',
-                },
-              }}
+              sx={{ mt: 3, mb: 2, backgroundColor: '#2C3142' }}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              Add User
             </Button>
           </Box>
-        </Box>
+        </Paper>
       </Container>
     </Box>
   );
 };
 
-export default Login;
+export default AddUser;

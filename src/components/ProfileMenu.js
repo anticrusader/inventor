@@ -14,6 +14,7 @@ import {
   Person as PersonIcon,
   ExitToApp as LogoutIcon,
   Login as LoginIcon,
+  PersonAdd,
 } from '@mui/icons-material';
 
 const ProfileMenu = () => {
@@ -43,6 +44,11 @@ const ProfileMenu = () => {
   const handleProfile = () => {
     handleClose();
     navigate('/profile');
+  };
+
+  const handleAddUser = () => {
+    handleClose();
+    navigate('/add-user');
   };
 
   return (
@@ -87,6 +93,12 @@ const ProfileMenu = () => {
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Profile" />
+            </MenuItem>
+            <MenuItem onClick={handleAddUser}>
+              <ListItemIcon>
+                <PersonAdd fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Add User" />
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>

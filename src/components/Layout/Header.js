@@ -12,6 +12,9 @@ import {
   Toolbar,
   Typography,
   Link,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -23,6 +26,8 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import StoreIcon from '@mui/icons-material/Store';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import LogoutIcon from '@mui/icons-material/Logout';
 import logo from '../../assets/logo.png';
 
 const Header = () => {
@@ -71,6 +76,11 @@ const Header = () => {
 
   const handleProfile = () => {
     navigate('/profile');
+    handleProfileMenuClose();
+  };
+
+  const handleAddUser = () => {
+    navigate('/add-user');
     handleProfileMenuClose();
   };
 
@@ -308,23 +318,36 @@ const Header = () => {
             </IconButton>
             <Menu
               anchorEl={profileAnchorEl}
+              open={Boolean(profileAnchorEl)}
+              onClose={handleProfileMenuClose}
               anchorOrigin={{
                 vertical: 'bottom',
                 horizontal: 'right',
               }}
-              id="primary-search-account-menu"
-              keepMounted
               transformOrigin={{
                 vertical: 'top',
                 horizontal: 'right',
               }}
-              open={Boolean(profileAnchorEl)}
-              onClose={handleProfileMenuClose}
             >
               <MenuItem onClick={handleProfile}>
-                Profile
+                <ListItemIcon>
+                  <AccountCircleIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Profile" />
               </MenuItem>
-              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
+              <MenuItem onClick={handleAddUser}>
+                <ListItemIcon>
+                  <PersonAddIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Add User" />
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleSignOut}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Sign Out" />
+              </MenuItem>
             </Menu>
             <Typography sx={{ ml: 2 }}>{user.username}</Typography>
           </Box>

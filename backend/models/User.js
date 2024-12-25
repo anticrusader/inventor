@@ -6,6 +6,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  email: {
+    type: String,
+    required: false, // Making it optional for existing users
+    default: 'anticrusader@gmail.com' // Default email for existing users
+  },
   password: {
     type: String,
     required: true

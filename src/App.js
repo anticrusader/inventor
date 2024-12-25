@@ -24,6 +24,7 @@ import AddCategory from './pages/AddCategory';
 import Company from './pages/Company';
 import AddCompany from './pages/AddCompany';
 import Profile from './pages/Profile';
+import AddUser from './pages/AddUser';
 import ProfileSettings from './pages/ProfileSettings';
 import NotificationManagement from './pages/NotificationManagement';
 import Attributes from './pages/Attributes';
@@ -311,6 +312,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AddVendor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-user"
+            element={
+              <ProtectedRoute>
+                <AddUser />
               </ProtectedRoute>
             }
           />
