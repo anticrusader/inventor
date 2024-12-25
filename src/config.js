@@ -1,8 +1,7 @@
 const config = {
-  API_URL: process.env.REACT_APP_API_URL || 
-    (process.env.NODE_ENV === 'production'
-      ? 'https://inventor-dv3d.onrender.com/api'
-      : 'http://localhost:5001/api')
+  API_URL: process.env.NODE_ENV === 'production'
+    ? 'https://inventor-backend-dv3d.onrender.com/api'  // Production backend URL
+    : 'http://localhost:5001/api'  // Development URL
 };
 
 export default config;

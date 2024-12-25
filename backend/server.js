@@ -46,9 +46,8 @@ app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
       'https://inventor-dv3d.onrender.com',
-      'http://localhost:3000',
-      'https://inventor-dv3d.onrender.com/api',
-      'http://localhost:5001'
+      'https://inventor-frontend-dv3d.onrender.com',
+      'http://localhost:3000'
     ];
     
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -62,9 +61,13 @@ app.use(cors({
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie'],
   credentials: true,
   maxAge: 86400 // 24 hours
 }));
+
+// Add cookie parser
+app.use(require('cookie-parser')());
 
 // Basic middleware
 app.use(express.json());
