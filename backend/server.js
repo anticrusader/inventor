@@ -43,10 +43,27 @@ app.use((req, res, next) => {
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://inventor-dv3d.onrender.com', 'http://localhost:3000'],
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://inventor-dv3d.onrender.com',
+      'http://localhost:3000',
+      'https://inventor-dv3d.onrender.com/api',
+      'http://localhost:5001'
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('Origin not allowed:', origin);
+      return callback(null, false);
+    }
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
 }));
 
 // Basic middleware

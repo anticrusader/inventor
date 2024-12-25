@@ -8,9 +8,8 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import axios from 'axios';
 import logo from '../assets/logo.png';
-import config from '../config';
+import authService from '../services/authService';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -34,23 +33,18 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${config.API_URL}/auth/login`, formData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        withCredentials: true
-      });
+      const response = await authService.login(formData);
+      console.log('Login response:', response);
       
       if (response.data.success) {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         navigate('/');
       } else {
-        setError('Invalid credentials');
+        setError(response.data.message || 'Invalid credentials');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Login failed. Please check your credentials and try again.');
+      setError(error.response?.data?.message || 'Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
@@ -85,6 +79,7 @@ const Login = () => {
               filter: 'brightness(0) invert(0.7)', // This will make the logo light golden
             }}
           />
+
           <Typography component="h1" variant="h5" sx={{ color: 'white', mb: 3 }}>
             Sign in to Inventor
           </Typography>
