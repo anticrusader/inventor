@@ -42,12 +42,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// CORS configuration
-app.use(cors({
-  origin: '*',
+// CORS configuration based on environment
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? 'https://inventor-dv3d.onrender.com'
+    : 'http://localhost:3000',
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Create uploads directory if it doesn't exist
 const fs = require('fs');
@@ -69,7 +74,7 @@ app.use('/api/profile', profileRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working' });
+  res.json({ message: 'API is working!' });
 });
 
 // Serve static files in production
@@ -85,18 +90,20 @@ if (process.env.NODE_ENV === 'production') {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({
+  console.error(err.stack);
+  res.status(500).json({ 
     success: false,
-    message: 'Internal server error',
+    message: 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-const PORT = process.env.PORT || 10000;
+// Port configuration based on environment
+const PORT = process.env.NODE_ENV === 'production' ? (process.env.PORT || 10000) : 5001;
+console.log('Environment:', process.env.NODE_ENV);
 console.log('Starting server on port:', PORT);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV);
   console.log('MongoDB URI:', process.env.MONGODB_URI);
 });

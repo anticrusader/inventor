@@ -2,7 +2,7 @@ import axios from 'axios';
 import config from '../config';
 
 const axiosInstance = axios.create({
-  baseURL: config.API_URL,
+  baseURL: `${config.API_URL}/api`,
   timeout: 30000,
   withCredentials: true,
   headers: {
@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
 const authService = {
   login: async (credentials) => {
     try {
-      console.log('Attempting login with URL:', `${config.API_URL}/auth/login`);
+      console.log('Attempting login with URL:', `${config.API_URL}/api/auth/login`);
       const response = await axiosInstance.post('/auth/login', credentials);
       console.log('Login response:', response);
       
