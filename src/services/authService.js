@@ -4,7 +4,7 @@ import config from '../config';
 const axiosInstance = axios.create({
   baseURL: config.API_URL,
   timeout: 30000,
-  withCredentials: true,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -53,6 +53,11 @@ const authService = {
       console.log('Attempting login with URL:', `${config.API_URL}/auth/login`);
       const response = await axiosInstance.post('/auth/login', credentials);
       console.log('Login response:', response);
+      
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Login error:', error);
@@ -60,24 +65,17 @@ const authService = {
     }
   },
 
-  logout: async () => {
-    try {
-      await axiosInstance.post('/auth/logout');
-      localStorage.removeItem('user');
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
+  logout: () => {
+    localStorage.removeItem('token');
   },
 
   getCurrentUser: () => {
-    try {
-      const user = localStorage.getItem('user');
-      return user ? JSON.parse(user) : null;
-    } catch (error) {
-      console.error('Get current user error:', error);
-      return null;
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Add logic here to decode token or get user info
+      return true;
     }
+    return null;
   }
 };
 

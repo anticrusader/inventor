@@ -6,7 +6,16 @@ const app = express();
 
 // Basic middleware
 app.use(express.json());
-app.use(cors());
+
+// CORS configuration
+const corsOptions = {
+  origin: ['https://inventor-dv3d.onrender.com', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+};
+
+app.use(cors(corsOptions));
 
 // Root route
 app.get('/', (req, res) => {
