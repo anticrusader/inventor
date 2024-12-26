@@ -32,12 +32,7 @@ const stoneRoutes = require('./routes/stones');
 const vendorRoutes = require('./routes/vendors');
 const profileRoutes = require('./routes/profile');
 
-// Test route to verify API is working
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working!' });
-});
-
-// Mount routes
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -45,17 +40,35 @@ app.use('/api/stones', stoneRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/profile', profileRoutes);
 
+// Test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'API is working!' });
+});
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log('Connected to MongoDB');
+    console.log('MongoDB Connected Successfully');
     console.log('Environment:', process.env.NODE_ENV);
   })
   .catch(err => console.error('MongoDB connection error:', err));
 
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the React app
+  const buildPath = path.join(__dirname, '../build');
+  console.log('Serving static files from:', buildPath);
+  app.use(express.static(buildPath));
+
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error occurred:', err);
+  console.error('Error:', err);
   res.status(500).json({ 
     success: false,
     message: 'Internal Server Error',
@@ -76,7 +89,7 @@ const PORT = process.env.PORT || 10000;
 console.log('Starting server on port:', PORT);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
   console.log('Available routes:');
   console.log('- /api/auth/login (POST)');
   console.log('- /api/auth/register (POST)');
