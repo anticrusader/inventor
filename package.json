@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "cd backend && npm install && NODE_ENV=production node server.js",
-    "build": "CI=false && npm install --legacy-peer-deps && react-scripts build",
+    "start": "npm run build && cd backend && npm install && NODE_ENV=production node server.js",
+    "build": "react-scripts build",
     "dev": "react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "install-all": "npm install --legacy-peer-deps && cd backend && npm install"
+    "install-all": "npm install && cd backend && npm install"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",

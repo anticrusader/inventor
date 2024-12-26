@@ -44,13 +44,23 @@ app.use((req, res, next) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the React build directory
-  app.use(express.static(path.join(__dirname, '../build')));
+  const buildPath = path.join(__dirname, '..', 'build');
+  console.log('Build path:', buildPath);
+  
+  // Check if build directory exists
+  const fs = require('fs');
+  if (fs.existsSync(buildPath)) {
+    console.log('Build directory exists');
+    // Serve static files from the React build directory
+    app.use(express.static(buildPath));
 
-  // Handle React routing, return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../build', 'index.html'));
-  });
+    // Handle React routing, return all requests to React app
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(buildPath, 'index.html'));
+    });
+  } else {
+    console.error('Build directory does not exist:', buildPath);
+  }
 }
 
 // Error handling middleware
