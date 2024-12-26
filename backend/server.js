@@ -93,9 +93,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-const port = process.env.PORT || 10000;
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running on port ${port}`);
+const PORT = process.env.PORT || 10000;
+console.log('Starting server on port:', PORT);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
   console.log('Environment:', process.env.NODE_ENV);
   console.log('MongoDB URI:', process.env.MONGODB_URI);
 });
