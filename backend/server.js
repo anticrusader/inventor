@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
@@ -17,6 +18,17 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
+// Import routes
+const authRoutes = require('./routes/auth');
+
+// Mount routes
+app.use('/auth', authRoutes);
+
 // Root route
 app.get('/', (req, res) => {
   console.log('Root route hit');
@@ -29,16 +41,20 @@ app.get('/test', (req, res) => {
   res.json({ message: 'Test route works!' });
 });
 
-// Simple auth test
-app.post('/auth/login', (req, res) => {
-  console.log('Login route hit', req.body);
-  res.json({ message: 'Login route works!' });
-});
-
 // Log all requests
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 const PORT = process.env.PORT || 10000;
