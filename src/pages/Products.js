@@ -69,10 +69,16 @@ const Products = () => {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
-        const data = await api.getCategories();
-        setCategories(data);
+        const response = await api.getCategories();
+        if (response.success) {
+          setCategories(response.data || []);
+        } else {
+          console.error('Error fetching categories:', response.message);
+          setCategories([]);
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
+        setCategories([]);
       } finally {
         setLoadingCategories(false);
       }
@@ -92,8 +98,13 @@ const Products = () => {
       const response = await api.getProducts();
       console.log('Fetched products:', response);
       // Update local state with the fetched products
-      setProducts(response.data || []);
-      // Clear any error messages
+      if (response.success) {
+        setProducts(response.data || []);
+      } else {
+        setError(response.message || 'Failed to fetch products');
+        setProducts([]);
+      }
+      // Clear any error messages if successful
       setError(null);
       // If location state contains a refresh flag, remove it
       if (location.state?.refresh) {
@@ -101,7 +112,7 @@ const Products = () => {
       }
     } catch (error) {
       console.error('Error fetching products:', error);
-      setError('Failed to fetch products');
+      setError(error.message || 'Error loading products');
       setProducts([]);
     } finally {
       setLoading(false);
@@ -372,7 +383,7 @@ const Products = () => {
           >
             All
           </Button>
-          {categories.map((category) => (
+          {Array.isArray(categories) && categories.map((category) => (
             <Button
               key={category._id}
               variant={selectedCategory === category.name ? 'contained' : 'outlined'}

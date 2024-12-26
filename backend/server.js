@@ -50,9 +50,11 @@ mongoose.connect(uri)
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Mount API routes
 app.use('/auth', authRoutes);
+app.use('/dashboard', dashboardRoutes);
 
 // API routes
 app.get('/api/test', (req, res) => {

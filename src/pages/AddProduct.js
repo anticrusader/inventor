@@ -51,19 +51,45 @@ const AddProduct = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesData, stonesData, vendorsData] = await Promise.all([
+        const [categoriesResponse, stonesResponse, vendorsResponse] = await Promise.all([
           api.getCategories(),
           api.getStones(),
           api.getVendors()
         ]);
-        console.log('Stones Data:', stonesData);
-        console.log('Vendors Data:', vendorsData);
-        setCategories(categoriesData);
-        setStones(stonesData);
-        setVendors(vendorsData);
+        
+        console.log('Categories Response:', categoriesResponse);
+        console.log('Stones Response:', stonesResponse);
+        console.log('Vendors Response:', vendorsResponse);
+        
+        // Set categories with proper error handling
+        if (categoriesResponse.success) {
+          setCategories(categoriesResponse.data || []);
+        } else {
+          console.error('Error loading categories:', categoriesResponse.message);
+          setCategories([]);
+        }
+        
+        // Set stones with proper error handling
+        if (stonesResponse.success) {
+          setStones(stonesResponse.data || []);
+        } else {
+          console.error('Error loading stones:', stonesResponse.message);
+          setStones([]);
+        }
+        
+        // Set vendors with proper error handling
+        if (vendorsResponse.success) {
+          setVendors(vendorsResponse.data || []);
+        } else {
+          console.error('Error loading vendors:', vendorsResponse.message);
+          setVendors([]);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setCategoryError('Error loading form data');
+        setCategories([]);
+        setStones([]);
+        setVendors([]);
       } finally {
         setLoadingCategories(false);
       }
@@ -342,7 +368,7 @@ const AddProduct = () => {
                     onChange={handleInputChange}
                     label="Stone"
                   >
-                    {stones.map((stone) => (
+                    {Array.isArray(stones) && stones.map((stone) => (
                       <MenuItem key={stone._id} value={stone._id}>
                         {stone.name}
                       </MenuItem>
@@ -359,9 +385,9 @@ const AddProduct = () => {
                     onChange={handleInputChange}
                     label="Vendor"
                   >
-                    {vendors.map((vendor) => (
+                    {Array.isArray(vendors) && vendors.map((vendor) => (
                       <MenuItem key={vendor._id} value={vendor._id}>
-                        {`${vendor.fname} ${vendor.lname || ''}`}
+                        {vendor.name}
                       </MenuItem>
                     ))}
                   </Select>

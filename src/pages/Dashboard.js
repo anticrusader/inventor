@@ -714,29 +714,29 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Total Products',
-      count: dashboardData.stats.totalProducts.toLocaleString(),
-      change: '+1.5% Since last week',
+      count: dashboardData?.stats?.totalProducts ? dashboardData.stats.totalProducts.toLocaleString() : '0',
+      change: 'Products in inventory',
       icon: InventoryIcon,
       path: '/products'
     },
     {
-      title: 'Total paid Orders',
-      count: `Rs.${dashboardData.stats.totalSales.toLocaleString()}`,
-      change: '+12% Since last week',
+      title: 'Total Orders',
+      count: dashboardData?.stats?.totalOrders ? dashboardData.stats.totalOrders.toLocaleString() : '0',
+      change: 'All time orders',
       icon: ShoppingCartIcon,
       path: '/orders'
     },
     {
-      title: 'Total User',
-      count: '18,540k',
-      change: '+15% Since last week',
+      title: 'Total Users',
+      count: dashboardData?.stats?.totalUsers ? dashboardData.stats.totalUsers.toLocaleString() : '0',
+      change: 'Registered users',
       icon: PeopleIcon,
       path: '/users'
     },
     {
       title: 'Total Stores',
-      count: dashboardData.stats.totalStores.toLocaleString(),
-      change: '+20% Since last week',
+      count: dashboardData?.stats?.totalStores ? dashboardData.stats.totalStores.toLocaleString() : '0',
+      change: 'Active stores',
       icon: StorefrontIcon,
       path: '/stores'
     }
