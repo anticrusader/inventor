@@ -34,25 +34,45 @@ router.post('/reset-password', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('Login attempt for:', username);
+    console.log('Login attempt - Request body:', req.body);
+    console.log('Login attempt for username:', username);
 
     if (!username || !password) {
+      console.log('Missing credentials - Username or password not provided');
       return res.status(400).json({
         success: false,
         message: 'Username and password are required'
       });
     }
 
-    const user = await User.findOne({ username });
+    // Debug: Log the query we're about to make
+    console.log('Searching for user with username:', username);
+    
+    const user = await User.findOne({ username: username.toLowerCase() });
+    
+    // Debug: Log what we found
+    console.log('Database query result:', user ? 'User found' : 'User not found');
+    if (user) {
+      console.log('User details:', {
+        id: user._id,
+        username: user.username,
+        hasPassword: !!user.password
+      });
+    }
+
     if (!user) {
-      console.log('User not found:', username);
+      console.log('User not found in database:', username);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
+    // Debug: Log password comparison
+    console.log('Comparing passwords for user:', username);
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match result:', isMatch);
+
     if (!isMatch) {
       console.log('Password mismatch for user:', username);
       return res.status(401).json({
@@ -62,6 +82,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate JWT token
+    console.log('Generating JWT token for user:', username);
     const token = jwt.sign(
       { 
         userId: user._id,
@@ -83,6 +104,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Server error during login'

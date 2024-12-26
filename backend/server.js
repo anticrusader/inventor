@@ -19,10 +19,28 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Connect to MongoDB
+// Connect to MongoDB with detailed logging
+console.log('Attempting to connect to MongoDB...');
+console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI is set' : 'URI is missing');
+
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .then(() => {
+    console.log('Successfully connected to MongoDB');
+    // Test the connection by counting users
+    const User = require('./models/User');
+    return User.countDocuments();
+  })
+  .then(count => {
+    console.log(`Number of users in database: ${count}`);
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    console.error('Error details:', {
+      name: err.name,
+      message: err.message,
+      code: err.code
+    });
+  });
 
 // Import routes
 const authRoutes = require('./routes/auth');
