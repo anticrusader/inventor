@@ -24,9 +24,9 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  // { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },  // Temporarily hidden
   { text: 'Products', icon: <InventoryIcon />, path: '/products' },
-  { text: 'Orders', icon: <ShoppingCartIcon />, path: '/orders' },
+  // { text: 'Orders', icon: <ShoppingCartIcon />, path: '/orders' },  // Temporarily hidden
   { text: 'Stores', icon: <StoreIcon />, path: '/stores' },
   { text: 'Groups', icon: <GroupIcon />, path: '/groups' },
   { text: 'Categories', icon: <CategoryIcon />, path: '/categories' },

@@ -9,8 +9,6 @@ import Products from './pages/Products';
 import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
 import ProductsOverview from './pages/ProductsOverview';
-import Orders from './pages/Orders';
-import AddOrder from './pages/AddOrder';
 import Stores from './pages/Stores';
 import AddStore from './pages/AddStore';
 import StoresOverview from './pages/StoresOverview';
@@ -201,7 +199,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Navigate to="/products" replace />
               </ProtectedRoute>
             }
           />
@@ -242,22 +240,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProductsOverview />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <Orders />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-order"
-            element={
-              <ProtectedRoute>
-                <AddOrder />
               </ProtectedRoute>
             }
           />
