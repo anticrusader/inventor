@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "cd backend && npm install && node server.js",
+    "start": "cd backend && npm install && NODE_ENV=production node server.js",
     "build": "CI=false && npm install --legacy-peer-deps && react-scripts build",
     "dev": "react-scripts start",
     "test": "react-scripts test",
@@ -58,6 +58,6 @@
     ]
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": "18.x"
   }
 }
