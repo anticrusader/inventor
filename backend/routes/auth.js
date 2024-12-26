@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail'); // Assuming you have a sendEmail function in utils/sendEmail.js
@@ -60,15 +61,20 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Set session cookie
-    req.session = {
-      userId: user._id,
-      username: user.username
-    };
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user._id,
+        username: user.username 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
     console.log('Login successful for:', username);
     res.json({ 
       success: true,
+      token,
       user: {
         _id: user._id,
         username: user.username,

@@ -50,7 +50,7 @@ axiosInstance.interceptors.response.use(
 const authService = {
   login: async (credentials) => {
     try {
-      console.log('Attempting login with URL:', `${config.API_URL}/auth/login`);
+      console.log('Attempting login with credentials:', credentials);
       const response = await axiosInstance.post('/auth/login', credentials);
       console.log('Login response:', response);
       
@@ -72,8 +72,8 @@ const authService = {
   getCurrentUser: () => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Add logic here to decode token or get user info
-      return true;
+      // You might want to decode the token here or make an API call to get user details
+      return token;
     }
     return null;
   }
