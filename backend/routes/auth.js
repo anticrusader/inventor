@@ -30,12 +30,58 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Temporary route to create a test user
+router.post('/create-test-user', async (req, res) => {
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ username: 'umair' });
+    if (existingUser) {
+      return res.json({ 
+        success: true, 
+        message: 'Test user already exists',
+        user: {
+          username: existingUser.username,
+          email: existingUser.email
+        }
+      });
+    }
+
+    // Create new user
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('Umair@Akram', salt);
+
+    const user = new User({
+      username: 'umair',
+      email: 'umair@example.com',
+      password: hashedPassword,
+      role: 'admin'
+    });
+
+    await user.save();
+    console.log('Test user created successfully');
+
+    res.json({ 
+      success: true, 
+      message: 'Test user created successfully',
+      user: {
+        username: user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Error creating test user:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error creating test user' 
+    });
+  }
+});
+
 // Login route
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log('Login attempt - Request body:', req.body);
-    console.log('Login attempt for username:', username);
+    console.log('Login attempt - Request body:', { username, password: '***' });
 
     if (!username || !password) {
       console.log('Missing credentials - Username or password not provided');
@@ -48,7 +94,7 @@ router.post('/login', async (req, res) => {
     // Debug: Log the query we're about to make
     console.log('Searching for user with username:', username);
     
-    const user = await User.findOne({ username: username.toLowerCase() });
+    const user = await User.findOne({ username });
     
     // Debug: Log what we found
     console.log('Database query result:', user ? 'User found' : 'User not found');
@@ -70,6 +116,8 @@ router.post('/login', async (req, res) => {
 
     // Debug: Log password comparison
     console.log('Comparing passwords for user:', username);
+    console.log('Stored password hash:', user.password);
+    
     const isMatch = await bcrypt.compare(password, user.password);
     console.log('Password match result:', isMatch);
 
@@ -99,7 +147,8 @@ router.post('/login', async (req, res) => {
       user: {
         _id: user._id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {

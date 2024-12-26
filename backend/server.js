@@ -21,17 +21,23 @@ app.use(cors(corsOptions));
 
 // Connect to MongoDB with detailed logging
 console.log('Attempting to connect to MongoDB...');
-console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI is set' : 'URI is missing');
+const dbURI = process.env.MONGODB_URI;
+console.log('MongoDB URI:', dbURI ? 'URI is set' : 'URI is missing');
 
-mongoose.connect(process.env.MONGODB_URI)
+// Ensure the URI points to the 'inventor' database
+const uri = dbURI.includes('inventor') ? dbURI : `${dbURI}/inventor`;
+console.log('Using database:', uri.split('/').pop().split('?')[0]);
+
+mongoose.connect(uri)
   .then(() => {
     console.log('Successfully connected to MongoDB');
     // Test the connection by counting users
     const User = require('./models/User');
-    return User.countDocuments();
+    return User.find().exec();
   })
-  .then(count => {
-    console.log(`Number of users in database: ${count}`);
+  .then(users => {
+    console.log(`Number of users in database: ${users.length}`);
+    console.log('Users found:', users.map(u => ({ username: u.username, email: u.email })));
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
