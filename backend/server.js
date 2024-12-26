@@ -7,18 +7,42 @@ require('dotenv').config();
 
 const app = express();
 
+// Enable pre-flight requests for all routes
+app.options('*', cors());
+
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS configuration
-app.use(cors({
-  origin: ['https://inventor-dv3d.onrender.com', 'http://localhost:3000'],
+const corsOptions = {
+  origin: true, // Allow all origins for now
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Access-Control-Allow-Origin'],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
+
+// Add headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', true);
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// Root route to verify server is running
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running' });
+});
 
 // Test route (place this before other routes to test API connectivity)
 app.get('/api/test', (req, res) => {
@@ -88,6 +112,7 @@ console.log('Node environment:', process.env.NODE_ENV);
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   console.log('Available routes:');
+  console.log('- / (GET)');
   console.log('- /api/test (GET)');
   console.log('- /api/auth/login (POST)');
   console.log('- /api/auth/register (POST)');
