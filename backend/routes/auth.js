@@ -35,6 +35,12 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     console.log('Login attempt for:', username);
 
+    // Set CORS headers
+    res.header('Access-Control-Allow-Origin', 'https://inventor-dv3d.onrender.com');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+
     if (!username || !password) {
       return res.status(400).json({
         success: false,

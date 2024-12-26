@@ -37,23 +37,23 @@ connectDB();
 
 const app = express();
 
+// CORS configuration - MUST BE BEFORE ROUTES
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
+}));
+
+// Pre-flight requests
+app.options('*', cors());
+
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   console.log('Headers:', req.headers);
   next();
 });
-
-// CORS configuration
-app.use(cors({
-  origin: 'https://inventor-dv3d.onrender.com',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Add OPTIONS handling for all routes
-app.options('*', cors());
 
 // Basic middleware
 app.use(express.json());
