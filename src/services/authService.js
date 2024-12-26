@@ -54,10 +54,7 @@ const authService = {
       const response = await axiosInstance.post('/auth/login', credentials);
       console.log('Login response:', response);
       
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
-      
+      // Return the response.data directly, which contains success, token, and user
       return response.data;
     } catch (error) {
       console.error('Login error:', error);
@@ -67,13 +64,18 @@ const authService = {
 
   logout: () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   },
 
   getCurrentUser: () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // You might want to decode the token here or make an API call to get user details
-      return token;
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        return null;
+      }
     }
     return null;
   }

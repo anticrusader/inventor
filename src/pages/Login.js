@@ -36,11 +36,12 @@ const Login = () => {
       const response = await authService.login(formData);
       console.log('Login response:', response);
       
-      if (response.data.success) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (response.success) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
         navigate('/');
       } else {
-        setError(response.data.message || 'Invalid credentials');
+        setError(response.message || 'Invalid credentials');
       }
     } catch (error) {
       console.error('Login error:', error);
