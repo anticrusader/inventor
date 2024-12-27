@@ -3,6 +3,9 @@ import axios from 'axios';
 import config from '../config'; 
 import {
   Container,
+  Card,
+  CardContent,
+  CardActions,
   Grid,
   Paper,
   Typography,
@@ -28,6 +31,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ImageIcon from '@mui/icons-material/Image';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ZoomableImage from '../components/ZoomableImage';
@@ -266,7 +270,7 @@ const Products = () => {
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      {/* <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Paper
@@ -341,7 +345,67 @@ const Products = () => {
             </Box>
           </Paper>
         </Grid>
-      </Grid>
+      </Grid> */}
+      <Grid container spacing={3}>
+  {filteredProducts.map((product) => (
+    <Grid item xs={12} sm={6} md={4} key={product._id}>
+      <Card 
+        sx={{ 
+          height: '100%', 
+          display: 'flex', 
+          flexDirection: 'column',
+          position: 'relative'
+        }}
+      >
+        <CardContent>
+          <Typography variant="h6" component="div">
+            {product.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Category: {product.category ? product.category.name : 'N/A'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Stone: {product.stone ? product.stone.name : 'N/A'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Vendor: {product.vendor ? `${product.vendor.fname} ${product.vendor.lname}` : 'N/A'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Price: ${product.price}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Weight: {product.weight}g
+          </Typography>
+        </CardContent>
+        <Box sx={{ flexGrow: 1 }} />
+        <CardActions>
+          <Button 
+            size="small" 
+            onClick={() => handleEdit(product)}
+            startIcon={<EditIcon />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="small" 
+            color="error"
+            onClick={() => handleDelete(product._id)}
+            startIcon={<DeleteIcon />}
+          >
+            Delete
+          </Button>
+          <Button 
+            size="small"
+            onClick={() => handleViewImages(product)}
+            startIcon={<ImageIcon />}
+          >
+            Images
+          </Button>
+        </CardActions>
+      </Card>
+    </Grid>
+  ))}
+</Grid>
 
       {/* Products list header with filters */}
       <Box sx={{ 

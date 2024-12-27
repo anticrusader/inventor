@@ -26,13 +26,28 @@ const fs = require('fs');
 //     });
 //   }
 // });
+// router.get('/', async (req, res) => {
+//   try {
+//     const products = await Product.find().populate('category');
+//     console.log('Products fetched:', products); // Add logging
+//     res.json(products);
+//   } catch (error) {
+//     console.error('Error fetching products:', error); // Add error logging
+//     res.status(500).json({ message: error.message });
+//   }
+// });
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find().populate('category');
+    const products = await Product.find()
+      .populate('category', 'name') // Populate category with name field
+      .populate('stone', 'name') // Populate stone fields
+      .populate('vendor', 'fname lname company') // Populate vendor fields
+      .sort({ createdAt: -1 });
+    
     console.log('Products fetched:', products); // Add logging
     res.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error); // Add error logging
+    console.error('Error fetching products:', error);
     res.status(500).json({ message: error.message });
   }
 });

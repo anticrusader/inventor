@@ -107,4 +107,4 @@ productSchema.pre('save', function(next) {
 const Product = mongoose.model('Product', productSchema);
 console.log('Product model initialized with collection:', Product.collection.name);
 
-module.exports = Product;
+module.exports = mongoose.model('Product', productSchema);;
