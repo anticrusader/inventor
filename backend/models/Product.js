@@ -18,15 +18,15 @@ const productSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
-  // category: {
-  //   type: String,
-  //   required: true
-  // },
-  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
-  weight: {
-    type: Number,
+  category: {
+    type: String,
     required: true
   },
+  // category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+  // weight: {
+  //   type: Number,
+  //   required: true
+  // },
   stone: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Stone',
