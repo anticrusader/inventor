@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+const authRoutes = require('./routes/auth');
 require('dotenv').config();
 
 const app = express();
@@ -55,7 +56,7 @@ const productRoutes = require('./routes/products');
 const categoryRoutes = require('./routes/categories');
 
 // Mount API routes
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);

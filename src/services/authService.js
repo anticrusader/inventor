@@ -51,7 +51,7 @@ const authService = {
   login: async (credentials) => {
     try {
       console.log('Attempting login with credentials:', credentials);
-      const response = await axiosInstance.post('/auth/login', credentials);
+      const response = await axiosInstance.post(`${config.AUTH_URL}/login`, credentials);
       console.log('Login response:', response);
       
       // Return the response.data directly, which contains success, token, and user
