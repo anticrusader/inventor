@@ -73,34 +73,54 @@ app.use((req, res, next) => {
 });
 
 // Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, 'build'); // Ensure the path is correct
-  console.log('Build path:', buildPath);
+// if (process.env.NODE_ENV === 'production') {
+//   const buildPath = path.join(__dirname,'..', 'build'); // Ensure the path is correct
+//   console.log('Build path:', buildPath);
   
-  // Check if build directory exists
-  const fs = require('fs');
-  if (fs.existsSync(buildPath)) {
-    console.log('Build directory exists');
-    // Serve static files from the React build directory
-    app.use(express.static(buildPath));
+//   // Check if build directory exists
+//   const fs = require('fs');
+//   if (fs.existsSync(buildPath)) {
+//     console.log('Build directory exists');
+//     // Serve static files from the React build directory
+//     app.use(express.static(buildPath));
 
-    // Handle React routing, return all requests to React app
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(buildPath, 'index.html'));
-    });
-  } else {
-    console.error('Build directory does not exist:', buildPath);
-  }
+//     // Handle React routing, return all requests to React app
+//     app.get('*', (req, res) => {
+//       res.sendFile(path.join(buildPath, 'index.html'));
+//     });
+//   } else {
+//     console.error('Build directory does not exist:', buildPath);
+//   }
+// }
+
+// // Error handling middleware
+// app.use((err, req, res, next) => {
+//   console.error('Error:', err);
+//   res.status(500).json({
+//     success: false,
+//     message: 'Internal server error',
+//     error: process.env.NODE_ENV === 'development' ? err.message : undefined
+//   });
+// });
+// Update the static files serving section
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the React app
+  app.use(express.static(path.join(__dirname, '../build')));
+
+  // Handle React routing, return all requests to React app
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('API is running in development mode');
+  });
 }
 
-// Error handling middleware
+// Move error handling middleware here
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
 const PORT = process.env.PORT || 10000;
