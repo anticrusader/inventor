@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config'; 
 import {
   Container,
   Grid,
@@ -92,20 +93,27 @@ const Products = () => {
       console.log('API Response:', response); // Add logging
       console.log('Fetched products:', response);
       // Update local state with the fetched products
+      // if (response.data) {
+      //   setProducts(response.data);
+      // } else {
+      //   setError('No products data received');
+      // }
       if (response.data) {
-        setProducts(response.data);
+        setProducts(Array.isArray(response.data) ? response.data : []);
+        setError(null);
       } else {
         setError('No products data received');
+        setProducts([]);
       }
       // Clear any error messages if successful
       //setError(null);
       // If location state contains a refresh flag, remove it
-      // if (location.state?.refresh) {
-      //   navigate(location.pathname, { replace: true });
-      // }
+      if (location.state?.refresh) {
+        navigate(location.pathname, { replace: true });
+      }
     } catch (error) {
       console.error('Error details:', error.response || error); // Detailed error logging
-    setError(error.response?.data?.message || error.message || 'Failed to fetch products');
+      setError(error.response?.data?.message || error.message || 'Failed to fetch products');
     } finally {
       setLoading(false);
     }
