@@ -74,7 +74,7 @@ app.use((req, res, next) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '..', 'frontend', 'build'); // Ensure the path is correct
+  const buildPath = path.join(__dirname, 'build'); // Ensure the path is correct
   console.log('Build path:', buildPath);
   
   // Check if build directory exists
