@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
+const Stone = require('../models/Stone');
+const Vendor = require('../models/Vendor');
+const Category = require('../models/Category');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -41,7 +44,7 @@ router.get('/', async (req, res) => {
     const products = await Product.find()
       .populate('category', 'name') // Populate category with name field
       .populate('stone', 'name') // Populate stone fields
-      .populate('vendor', 'fname lname company') // Populate vendor fields
+      .populate('vendor', 'fname') // Populate vendor fields
       .sort({ createdAt: -1 });
     
     console.log('Products fetched:', products); // Add logging

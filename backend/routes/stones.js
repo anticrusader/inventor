@@ -5,22 +5,20 @@ const Stone = require('../models/Stone');
 // Get all stones
 router.get('/', async (req, res) => {
   try {
-    const stones = await Stone.find().sort({ createdAt: -1 });
+    const stones = await Stone.find().sort({ name: 1 });
     res.json(stones);
   } catch (error) {
+    console.error('Error fetching stones:', error);
     res.status(500).json({ message: error.message });
   }
 });
 
 // Add a new stone
 router.post('/', async (req, res) => {
-  const stone = new Stone({
-    name: req.body.name
-  });
-
   try {
-    const newStone = await stone.save();
-    res.status(201).json(newStone);
+    const stone = new Stone(req.body);
+    const savedStone = await stone.save();
+    res.status(201).json(savedStone);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

@@ -4,6 +4,20 @@ const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config();
 
+// Import all models first
+require('./models/Stone');
+require('./models/Product');
+require('./models/Category');
+require('./models/Vendor');  
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const dashboardRoutes = require('./routes/dashboard');
+const productRoutes = require('./routes/products');
+const categoryRoutes = require('./routes/categories');
+const stoneRoutes = require('./routes/stones');
+const vendorRoutes = require('./routes/vendors');
+
 const app = express();
 
 // Basic middleware
@@ -18,6 +32,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Mount API routes
+app.use('/api/auth', authRoutes);
+app.use('/dashboard', dashboardRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/stones', stoneRoutes);
+app.use('/api/vendors', vendorRoutes);
 
 // Connect to MongoDB with detailed logging
 console.log('Attempting to connect to MongoDB...');
@@ -48,17 +69,8 @@ mongoose.connect(uri)
     });
   });
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
-const productRoutes = require('./routes/products');
-const categoryRoutes = require('./routes/categories');
 
-// Mount API routes
-app.use('/api/auth', authRoutes);
-app.use('/dashboard', dashboardRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/categories', categoryRoutes);
+
 
 // API test route
 app.get('/api/test', (req, res) => {
@@ -117,20 +129,12 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Move error handling middleware here
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ message: 'Something broke!', error: err.message });
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Available routes:');
-  console.log('- GET /api/test');
-  console.log('- GET /api/products');
-  console.log('- GET /api/categories');
-  console.log('- POST /auth/login');
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
