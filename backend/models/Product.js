@@ -108,3 +108,4 @@ const Product = mongoose.model('Product', productSchema);
 console.log('Product model initialized with collection:', Product.collection.name);
 
 module.exports = mongoose.model('Product', productSchema);;
+
