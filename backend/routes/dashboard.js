@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const Order = require('../models/Order');
+// const Order = require('../models/Order'); // Commented out as not used currently
 const Store = require('../models/Store');
 const User = require('../models/User');
 
@@ -17,8 +17,8 @@ router.get('/stats', async (req, res) => {
       activeProducts: 0,
       deactiveProducts: 0,
       totalStores: 0,
-      totalOrders: 0,
-      totalSales: 0,
+      totalOrders: 0, // Mock data for total orders
+      totalSales: 0,  // Mock data for total sales
       totalUsers
     };
 
