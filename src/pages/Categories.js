@@ -23,7 +23,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import api from '../services/api';
+import axios from 'axios';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
@@ -41,9 +41,9 @@ const Categories = () => {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const categories = await api.getCategories();
-      console.log('Loaded categories:', categories); // Add logging
-      setCategories(categories);
+      const response = await axios.get('https://inventor-dv3d.onrender.com/api/categories');
+      console.log('Loaded categories:', response.data); // Add logging
+      setCategories(response.data);
       setError(null);
     } catch (err) {
       console.error('Error loading categories:', err);
@@ -105,9 +105,9 @@ const Categories = () => {
       }
 
       if (selectedCategory) {
-        await api.updateCategory(selectedCategory._id, formData);
+        await axios.put(`https://inventor-dv3d.onrender.com/api/categories/${selectedCategory._id}`, formData);
       } else {
-        await api.addCategory(formData);
+        await axios.post('https://inventor-dv3d.onrender.com/api/categories', formData);
       }
       
       await loadCategories();
@@ -121,7 +121,7 @@ const Categories = () => {
   const handleDelete = async (categoryId) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
-        await api.deleteCategory(categoryId);
+        await axios.delete(`https://inventor-dv3d.onrender.com/api/categories/${categoryId}`);
         loadCategories();
       } catch (err) {
         setError('Failed to delete category');

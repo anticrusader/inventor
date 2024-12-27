@@ -51,12 +51,16 @@ mongoose.connect(uri)
 // Import routes
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
+const productRoutes = require('./routes/products'); // Add product routes
+const categoryRoutes = require('./routes/categories'); // Add category routes
 
 // Mount API routes
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/api/products', productRoutes); // Mount product routes
+app.use('/api/categories', categoryRoutes); // Mount category routes
 
-// API routes
+// API test route
 app.get('/api/test', (req, res) => {
   console.log('Test route hit');
   res.json({ message: 'Test route works!' });
@@ -70,7 +74,7 @@ app.use((req, res, next) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '..', 'build');
+  const buildPath = path.join(__dirname, 'build');
   console.log('Build path:', buildPath);
   
   // Check if build directory exists
@@ -106,5 +110,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('Environment:', process.env.NODE_ENV);
   console.log('Available routes:');
   console.log('- GET /api/test');
+  console.log('- GET /api/products');
+  console.log('- GET /api/categories');
   console.log('- POST /auth/login');
 });

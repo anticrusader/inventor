@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import api from '../services/api';
+import axios from 'axios';
 import {
   Container,
   Grid,
@@ -16,12 +16,7 @@ import {
   IconButton,
   TextField,
   Box,
-  Chip,
   Pagination,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -29,10 +24,9 @@ import {
   ImageListItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
+import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ZoomableImage from '../components/ZoomableImage';
@@ -69,8 +63,8 @@ const Products = () => {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
-        const response = await api.getCategories();
-        if (response.success) {
+        const response = await axios.get('https://inventor-dv3d.onrender.com/api/categories');
+        if (response.data) {
           setCategories(response.data || []);
         } else {
           console.error('Error fetching categories:', response.message);
@@ -85,7 +79,6 @@ const Products = () => {
     };
     fetchCategories();
   }, []);
-
   /**
    * Fetches products from the API and updates the local state.
    * If location state contains a refresh flag, it is cleared after fetching.
@@ -95,10 +88,10 @@ const Products = () => {
       // Set loading state to true
       setLoading(true);
       // Make API call to fetch products
-      const response = await api.getProducts();
+      const response = await axios.get('https://inventor-dv3d.onrender.com/api/products');
       console.log('Fetched products:', response);
       // Update local state with the fetched products
-      if (response.success) {
+      if (response.data) {
         setProducts(response.data || []);
       } else {
         setError(response.message || 'Failed to fetch products');
@@ -127,7 +120,7 @@ const Products = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         setLoading(true);
-        await api.deleteProduct(productId);
+        await axios.delete(`https://inventor-dv3d.onrender.com/api/products/${productId}`);
         // Remove the product from local state
         setProducts(prevProducts => prevProducts.filter(p => p._id !== productId));
         // Clear any selected items that were deleted
@@ -147,7 +140,7 @@ const Products = () => {
     if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} products?`)) {
       try {
         setLoading(true);
-        await Promise.all(selectedProducts.map(id => api.deleteProduct(id)));
+        await Promise.all(selectedProducts.map(id => axios.delete(`https://inventor-dv3d.onrender.com/api/products/${id}`)));
         // Remove deleted products from local state
         setProducts(prevProducts => prevProducts.filter(p => !selectedProducts.includes(p._id)));
         // Clear selected items
@@ -170,7 +163,6 @@ const Products = () => {
   const handleCloseImages = () => {
     setSelectedProduct(null);
   };
-
   // Filter and search products
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -222,7 +214,6 @@ const Products = () => {
       setSelectedProducts(selectedProducts.filter(selectedId => selectedId !== id));
     }
   };
-
   // Stats Cards
   const stats = [
     {
@@ -267,7 +258,6 @@ const Products = () => {
         </Button>
       </Box>
 
-      
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
@@ -399,7 +389,6 @@ const Products = () => {
           ))}
         </Box>
       </Box>
-
       {/* Search and other controls */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
         <TextField
