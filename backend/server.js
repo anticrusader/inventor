@@ -51,14 +51,14 @@ mongoose.connect(uri)
 // Import routes
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
-const productRoutes = require('./routes/products'); // Add product routes
-const categoryRoutes = require('./routes/categories'); // Add category routes
+const productRoutes = require('./routes/products');
+const categoryRoutes = require('./routes/categories');
 
 // Mount API routes
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
-app.use('/api/products', productRoutes); // Mount product routes
-app.use('/api/categories', categoryRoutes); // Mount category routes
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // API test route
 app.get('/api/test', (req, res) => {
@@ -74,9 +74,9 @@ app.use((req, res, next) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, 'build');
+  const buildPath = path.join(__dirname, 'public', 'build'); // Ensure correct path
   console.log('Build path:', buildPath);
-  
+
   // Check if build directory exists
   const fs = require('fs');
   if (fs.existsSync(buildPath)) {
