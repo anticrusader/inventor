@@ -7,23 +7,33 @@ const path = require('path');
 const fs = require('fs');
 
 // Get all products
+// router.get('/', async (req, res) => {
+//   try {
+//     console.log('Fetching all products...');
+//     const products = await Product.find()
+//       .populate('stone', 'name')
+//       .populate('vendor', 'fname lname')
+//       .sort({ createdAt: -1 });
+    
+//     console.log(`Found ${products.length} products`);
+//     res.json({ success: true, data: products });
+//   } catch (error) {
+//     console.error('Error fetching products:', error);
+//     res.status(500).json({ 
+//       success: false, 
+//       message: 'Error fetching products', 
+//       error: error.message 
+//     });
+//   }
+// });
 router.get('/', async (req, res) => {
   try {
-    console.log('Fetching all products...');
-    const products = await Product.find()
-      .populate('stone', 'name')
-      .populate('vendor', 'fname lname')
-      .sort({ createdAt: -1 });
-    
-    console.log(`Found ${products.length} products`);
-    res.json({ success: true, data: products });
+    const products = await Product.find().populate('category');
+    console.log('Products fetched:', products); // Add logging
+    res.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Error fetching products', 
-      error: error.message 
-    });
+    console.error('Error fetching products:', error); // Add error logging
+    res.status(500).json({ message: error.message });
   }
 });
 

@@ -88,25 +88,24 @@ const Products = () => {
       // Set loading state to true
       setLoading(true);
       // Make API call to fetch products
-      const response = await axios.get('https://inventor-dv3d.onrender.com/api/products');
+      const response = await axios.get(`${config.API_URL}/products`);
+      console.log('API Response:', response); // Add logging
       console.log('Fetched products:', response);
       // Update local state with the fetched products
       if (response.data) {
-        setProducts(response.data || []);
+        setProducts(response.data);
       } else {
-        setError(response.message || 'Failed to fetch products');
-        setProducts([]);
+        setError('No products data received');
       }
       // Clear any error messages if successful
-      setError(null);
+      //setError(null);
       // If location state contains a refresh flag, remove it
-      if (location.state?.refresh) {
-        navigate(location.pathname, { replace: true });
-      }
+      // if (location.state?.refresh) {
+      //   navigate(location.pathname, { replace: true });
+      // }
     } catch (error) {
-      console.error('Error fetching products:', error);
-      setError(error.message || 'Error loading products');
-      setProducts([]);
+      console.error('Error details:', error.response || error); // Detailed error logging
+    setError(error.response?.data?.message || error.message || 'Failed to fetch products');
     } finally {
       setLoading(false);
     }
