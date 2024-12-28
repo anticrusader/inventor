@@ -419,12 +419,12 @@ const AddProduct = () => {
   <InputLabel>Category</InputLabel>
   <Select
     name="category"
-    value={formData.category}
+    value={product.category}
     onChange={handleInputChange}
     required
   >
     {Array.isArray(categories) && categories.map((category) => (
-      <MenuItem key={category._id} value={category._id}>
+      <MenuItem key={category._id} value={category.name}>  {/* Changed value to category.name */}
         {category.name}
       </MenuItem>
     ))}
