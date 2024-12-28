@@ -118,7 +118,7 @@ const api = {
       timeout: 45000
     };
 
-    const response = await axiosInstance.put(`/products/${id}`, formData, config);
+    const response = await axiosInstance.patch(`/products/${id}`, formData, config);
     return response.data;
   },
   deleteProduct: async (id) => {

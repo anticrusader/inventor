@@ -26,7 +26,7 @@ app.use(express.json());
 // CORS configuration
 const corsOptions = {
   origin: ['https://inventor-dv3d.onrender.com', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false
 };
