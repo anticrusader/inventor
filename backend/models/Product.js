@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
 const productSchema = new mongoose.Schema({
   name: {
@@ -27,16 +28,19 @@ const productSchema = new mongoose.Schema({
   //   type: Number,
   //   required: true
   // },
-  stone: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stone',
-    required: true
-  },
-  vendor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Vendor',
-    required: true
-  },
+  // stone: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Stone',
+  //   required: true
+  // },
+  // vendor: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Vendor',
+  //   required: true
+  // },
+  category: { type: String },  // Changed from ObjectId
+  stone: { type: String },     // Changed from ObjectId
+  vendor: { type: String },    // Changed from ObjectId
   status: {
     type: String,
     enum: ['active', 'inactive'],
@@ -107,5 +111,5 @@ productSchema.pre('save', function(next) {
 const Product = mongoose.model('Product', productSchema);
 console.log('Product model initialized with collection:', Product.collection.name);
 
-module.exports = mongoose.model('Product', productSchema);;
+module.exports = Product;
 
