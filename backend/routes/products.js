@@ -182,27 +182,46 @@ router.patch('/:id', upload.array('images', 5), async (req, res) => {
       name: req.body.name,
       description: req.body.description,
       price: parseFloat(req.body.price),
-      quantity: parseInt(req.body.quantity),
+      quantity: parseInt(req.body.quantity || 0),
       category: req.body.category,
       weight: parseFloat(req.body.weight),
       stone: req.body.stone,
       vendor: req.body.vendor,
-      status: req.body.status,
+      status: req.body.status || 'active',
       sku: req.body.sku
     };
 
-    // Convert string IDs to ObjectIds
-    if (updates.stone) {
-      updates.stone = mongoose.Types.ObjectId(updates.stone);
+    // // Convert string IDs to ObjectIds
+    // if (updates.stone) {
+    //   updates.stone = mongoose.Types.ObjectId(updates.stone);
+    // }
+    // if (updates.vendor) {
+    //   updates.vendor = mongoose.Types.ObjectId(updates.vendor);
+    // }
+     // Handle stone and vendor IDs
+     if (req.body.stone) {
+      // Check if stone is already an ObjectId
+      updates.stone = typeof req.body.stone === 'object' && req.body.stone._id 
+        ? req.body.stone._id 
+        : req.body.stone;
     }
-    if (updates.vendor) {
-      updates.vendor = mongoose.Types.ObjectId(updates.vendor);
+
+    if (req.body.vendor) {
+      // Check if vendor is already an ObjectId
+      updates.vendor = typeof req.body.vendor === 'object' && req.body.vendor._id 
+        ? req.body.vendor._id 
+        : req.body.vendor;
     }
 
     // Handle existing images
+    // if (req.body.existingImages) {
+    //   const existingImages = JSON.parse(req.body.existingImages);
+    //   updates.images = existingImages;
+    // }
     if (req.body.existingImages) {
-      const existingImages = JSON.parse(req.body.existingImages);
-      updates.images = existingImages;
+      updates.images = Array.isArray(req.body.existingImages) 
+        ? req.body.existingImages 
+        : JSON.parse(req.body.existingImages);
     }
 
     // Add new uploaded images
@@ -214,7 +233,9 @@ router.patch('/:id', upload.array('images', 5), async (req, res) => {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       updates,
-      { new: true }
+      { new: true,
+        runValidators: true
+       }
     ).populate('stone', 'name')
       .populate('vendor', 'fname lname');
 
