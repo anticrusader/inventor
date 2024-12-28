@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import axios from 'axios';
+import config from '../config';
 import {
   Box,
   Container,
@@ -47,51 +49,52 @@ const AddProduct = () => {
     stone: '',
     vendor: ''
   });
-
+  const [error, setError] = useState(null);
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const [categoriesResponse, stonesResponse, vendorsResponse] = await Promise.all([
-          api.getCategories(),
-          api.getStones(),
-          api.getVendors()
+          axios.get(`${config.API_URL}/categories`),
+          axios.get(`${config.API_URL}/stones`),
+          axios.get(`${config.API_URL}/vendors`)
         ]);
         
         console.log('Categories Response:', categoriesResponse);
         console.log('Stones Response:', stonesResponse);
         console.log('Vendors Response:', vendorsResponse);
-        
+        setCategories(categoriesResponse.data);
+        setStones(stonesResponse.data);
+        setVendors(vendorsResponse.data);
+        setError(null);
         // Set categories with proper error handling
-        if (categoriesResponse.success) {
-          setCategories(categoriesResponse.data || []);
-        } else {
-          console.error('Error loading categories:', categoriesResponse.message);
-          setCategories([]);
-        }
+        // if (categoriesResponse.success) {
+        //   setCategories(categoriesResponse.data || []);
+        // } else {
+        //   console.error('Error loading categories:', categoriesResponse.message);
+        //   setCategories([]);
+        // }
         
-        // Set stones with proper error handling
-        if (stonesResponse.success) {
-          setStones(stonesResponse.data || []);
-        } else {
-          console.error('Error loading stones:', stonesResponse.message);
-          setStones([]);
-        }
+        // // Set stones with proper error handling
+        // if (stonesResponse.success) {
+        //   setStones(stonesResponse.data || []);
+        // } else {
+        //   console.error('Error loading stones:', stonesResponse.message);
+        //   setStones([]);
+        // }
         
-        // Set vendors with proper error handling
-        if (vendorsResponse.success) {
-          setVendors(vendorsResponse.data || []);
-        } else {
-          console.error('Error loading vendors:', vendorsResponse.message);
-          setVendors([]);
-        }
+        // // Set vendors with proper error handling
+        // if (vendorsResponse.success) {
+        //   setVendors(vendorsResponse.data || []);
+        // } else {
+        //   console.error('Error loading vendors:', vendorsResponse.message);
+        //   setVendors([]);
+        // }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setCategoryError('Error loading form data');
-        setCategories([]);
-        setStones([]);
-        setVendors([]);
+        setError('Failed to load required data');
       } finally {
-        setLoadingCategories(false);
+        setLoading(false);
       }
     };
     fetchData();
@@ -175,12 +178,17 @@ const AddProduct = () => {
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return;
 
     try {
-      setLoading(true);
       const formData = new FormData();
       
       // Add all product fields
