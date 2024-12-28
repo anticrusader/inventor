@@ -179,34 +179,57 @@ const AddProduct = () => {
   };
 
   
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (loading) return;
+
+  //   try {
+  //     setLoading(true);
+  //     const formData = new FormData();
+      
+  //     // Add all product fields
+  //     Object.keys(product).forEach(key => {
+  //       if (product[key]) {
+  //         formData.append(key, product[key]);
+  //       }
+  //     });
+
+  //     // Add images
+  //     imageFiles.forEach(file => {
+  //       formData.append('images', file);
+  //     });
+
+  //     await api.addProduct(formData);
+  //     setSuccess(true);
+  //     setTimeout(() => {
+  //       navigate('/products');
+  //     }, 1500);
+  //   } catch (error) {
+  //     console.error('Error saving product:', error);
+  //     alert(error.response?.data?.message || 'Error saving product. Please try again.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
-
+  
     try {
       setLoading(true);
-      const formData = new FormData();
-      
-      // Add all product fields
-      Object.keys(product).forEach(key => {
-        if (product[key]) {
-          formData.append(key, product[key]);
-        }
-      });
-
-      // Add images
-      imageFiles.forEach(file => {
-        formData.append('images', file);
-      });
-
-      await api.addProduct(formData);
-      setSuccess(true);
-      setTimeout(() => {
+      // Log the product data being sent
+      console.log('Sending product data:', product);
+  
+      const response = await axios.post(`${config.API_URL}/products`, product);
+      console.log('Server response:', response.data);
+  
+      if (response.data) {
         navigate('/products');
-      }, 1500);
+      }
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert(error.response?.data?.message || 'Error saving product. Please try again.');
+      console.error('Full error object:', error);
+      console.error('Server error response:', error.response?.data);
+      setError(error.response?.data?.message || 'Error saving product');
     } finally {
       setLoading(false);
     }
