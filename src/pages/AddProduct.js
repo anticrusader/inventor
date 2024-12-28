@@ -181,8 +181,10 @@ const AddProduct = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
 
     try {
+      setLoading(true);
       const formData = new FormData();
       
       // Add all product fields
@@ -389,7 +391,7 @@ const AddProduct = () => {
                   >
                     {Array.isArray(vendors) && vendors.map((vendor) => (
                       <MenuItem key={vendor._id} value={vendor._id}>
-                        {vendor.name}
+                        {`${vendor.fname} ${vendor.lname || ''}`}
                       </MenuItem>
                     ))}
                   </Select>
