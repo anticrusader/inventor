@@ -222,10 +222,13 @@ const AddProduct = () => {
       ...product,
       price: Number(product.price),
       weight: Number(product.weight),
-      quantity: Number(product.quantity)
+      quantity: Number(product.quantity),
+      // stone and vendor should be ObjectIds from the select inputs
+      stone: product.stone,  // This should be the _id from stone select
+      vendor: product.vendor // This should be the _id from vendor select
     };
       // Log the product data being sent
-      console.log('Sending product data:', product);
+      //console.log('Sending product data:', product);
       console.log('Sending product data:', productData);
   
       const response = await axios.post(`${config.API_URL}/products`, productData);

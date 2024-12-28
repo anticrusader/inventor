@@ -42,8 +42,8 @@ router.get('/', async (req, res) => {
   try {
     const products = await Product.find()
       // .populate('category', 'name') // Populate category with name field
-      // .populate('stone', 'name') // Populate stone fields
-      // .populate('vendor', 'fname') // Populate vendor fields
+       .populate('stone', 'name') // Populate stone fields
+       .populate('vendor', 'fname') // Populate vendor fields
       .sort({ createdAt: -1 });
     
     console.log('Products fetched:', products); // Add logging
