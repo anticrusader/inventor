@@ -28,19 +28,19 @@ const productSchema = new mongoose.Schema({
   //   type: Number,
   //   required: true
   // },
-  stone: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stone',
-    required: true
-  },
-  vendor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Vendor',
-    required: true
-  },
+  // stone: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Stone',
+  //   required: true
+  // },
+  // vendor: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Vendor',
+  //   required: true
+  // },
   //category: { type: String },  // Changed from ObjectId
-  // stone: { type: String },     // Changed from ObjectId
-  // vendor: { type: String },    // Changed from ObjectId
+  stone: { type: String,required: true },     // Changed from ObjectId
+  vendor: { type: String,required: true },    // Changed from ObjectId
   status: {
     type: String,
     enum: ['active', 'inactive'],

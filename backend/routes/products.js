@@ -8,7 +8,6 @@ const Category = require('../models/Category');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
 // Get all products
 // router.get('/', async (req, res) => {
 //   try {
@@ -42,9 +41,9 @@ const fs = require('fs');
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find()
-      .populate('category', 'name') // Populate category with name field
-      .populate('stone', 'name') // Populate stone fields
-      .populate('vendor', 'fname') // Populate vendor fields
+      // .populate('category', 'name') // Populate category with name field
+      // .populate('stone', 'name') // Populate stone fields
+      // .populate('vendor', 'fname') // Populate vendor fields
       .sort({ createdAt: -1 });
     
     console.log('Products fetched:', products); // Add logging
@@ -133,50 +132,41 @@ router.post('/', upload.array('images', 5), async (req, res) => {
     console.log('Creating new product with data:', req.body);
     
     // Create product object
-    const productData = {
-      name: req.body.name,
-      description: req.body.description,
-      price: parseFloat(req.body.price),
-      quantity: parseInt(req.body.quantity),
-      category: req.body.category,
-      weight: parseFloat(req.body.weight),
-      stone: req.body.stone,
-      vendor: req.body.vendor,
-      status: req.body.status || 'active',
-      sku: req.body.sku,
-      images: req.files ? req.files.map(file => file.filename) : []
-    };
-
+    // const productData = {
+    //   name: req.body.name,
+    //   description: req.body.description,
+    //   price: parseFloat(req.body.price),
+    //   quantity: parseInt(req.body.quantity),
+    //   category: req.body.category,
+    //   weight: parseFloat(req.body.weight),
+    //   stone: req.body.stone,
+    //   vendor: req.body.vendor,
+    //   status: req.body.status || 'active',
+    //   sku: req.body.sku,
+    //   images: req.files ? req.files.map(file => file.filename) : []
+    // };
+    const product = new Product(req.body);
+     // Log the product data for debugging
+     console.log('Creating product with data:', req.body);
     // Convert string IDs to ObjectIds
-    if (productData.stone) {
-      productData.stone = mongoose.Types.ObjectId(productData.stone);
-    }
-    if (productData.vendor) {
-      productData.vendor = mongoose.Types.ObjectId(productData.vendor);
-    }
+    // if (productData.stone) {
+    //   productData.stone = mongoose.Types.ObjectId(productData.stone);
+    // }
+    // if (productData.vendor) {
+    //   productData.vendor = mongoose.Types.ObjectId(productData.vendor);
+   // }
 
-    const product = new Product(productData);
-    await product.save();
+    //onst product = new Product(productData);
+    const savedProduct = await product.save();
+    res.status(201).json(savedProduct);
     
     console.log('Product created successfully:', product._id);
-    res.status(201).json({ 
-      success: true, 
-      message: 'Product created successfully', 
-      data: product 
-    });
+    
   } catch (error) {
     console.error('Error creating product:', error);
-    // Clean up uploaded files if product creation fails
-    if (req.files) {
-      req.files.forEach(file => {
-        fs.unlink(file.path, err => {
-          if (err) console.error('Error deleting file:', err);
-        });
-      });
-    }
     res.status(500).json({ 
-      success: false, 
-      message: 'Error creating product', 
+      success: false,
+      message: 'Error creating product',
       error: error.message 
     });
   }
