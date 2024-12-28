@@ -39,7 +39,7 @@ const Login = () => {
       if (response.success) {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
-        navigate('/');
+        navigate('/products');
       } else {
         setError(response.message || 'Invalid credentials');
       }
