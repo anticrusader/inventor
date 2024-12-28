@@ -63,7 +63,7 @@ const AddProduct = () => {
         console.log('Categories Response:', categoriesResponse);
         console.log('Stones Response:', stonesResponse);
         console.log('Vendors Response:', vendorsResponse);
-        setCategories(categoriesResponse);
+        setCategories(categoriesResponse.data);
         setStones(stonesResponse.data);
         setVendors(vendorsResponse.data);
         setError(null);
@@ -415,36 +415,21 @@ const AddProduct = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Category</InputLabel>
-                  <Select
-                    name="category"
-                    value={product.category}
-                    onChange={handleInputChange}
-                    label="Category"
-                    disabled={loadingCategories}
-                  >
-                    {loadingCategories ? (
-                      <MenuItem value="" disabled>
-                        Loading categories...
-                      </MenuItem>
-                    ) : categoryError ? (
-                      <MenuItem value="" disabled>
-                        {categoryError}
-                      </MenuItem>
-                    ) : categories && categories.length > 0 ? (
-                      categories.map((category) => (
-                        <MenuItem key={category._id} value={category.name}>
-                          {category.name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem value="" disabled>
-                        No categories available
-                      </MenuItem>
-                    )}
-                  </Select>
-                </FormControl>
+                <FormControl fullWidth>
+  <InputLabel>Category</InputLabel>
+  <Select
+    name="category"
+    value={formData.category}
+    onChange={handleInputChange}
+    required
+  >
+    {Array.isArray(categories) && categories.map((category) => (
+      <MenuItem key={category._id} value={category._id}>
+        {category.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
               </Grid>
             </Grid>
 
