@@ -217,10 +217,18 @@ const AddProduct = () => {
   
     try {
       setLoading(true);
+      // Transform the data before sending
+    const productData = {
+      ...product,
+      price: Number(product.price),
+      weight: Number(product.weight),
+      quantity: Number(product.quantity)
+    };
       // Log the product data being sent
       console.log('Sending product data:', product);
+      console.log('Sending product data:', productData);
   
-      const response = await axios.post(`${config.API_URL}/products`, product);
+      const response = await axios.post(`${config.API_URL}/products`, productData);
       console.log('Server response:', response.data);
   
       if (response.data) {
