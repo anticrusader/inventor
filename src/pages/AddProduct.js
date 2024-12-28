@@ -63,7 +63,7 @@ const AddProduct = () => {
         console.log('Categories Response:', categoriesResponse);
         console.log('Stones Response:', stonesResponse);
         console.log('Vendors Response:', vendorsResponse);
-        setCategories(categoriesResponse.data);
+        setCategories(categoriesResponse);
         setStones(stonesResponse.data);
         setVendors(vendorsResponse.data);
         setError(null);
