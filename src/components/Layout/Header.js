@@ -120,26 +120,16 @@ const Header = () => {
 
   const moreMenuItems = [
     {
-      label: 'Groups',
-      path: '/groups',
-      subItems: [
-        { label: 'Add Group', path: '/add-group' },
-        { label: 'Groups Permissions', path: '/groups-permissions' },
-      ],
+      label: 'Add Stone',
+      path: '/add-stone',
     },
     {
-      label: 'Brand',
-      path: '/brand',
-      subItems: [
-        { label: 'Add Brand', path: '/add-brand' },
-      ],
+      label: 'Add Vendor',
+      path: '/add-vendor',
     },
     {
       label: 'Category',
-      path: '/category',
-      subItems: [
-        { label: 'Add Category', path: '/add-category' },
-      ],
+      path: '/categories',
     },
   ];
 
