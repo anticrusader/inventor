@@ -50,9 +50,9 @@ axiosInstance.interceptors.response.use(
 const authService = {
   login: async (credentials) => {
     try {
-      console.log('Attempting login with credentials:', credentials);
+      //console.log('Attempting login with credentials:', credentials);
       const response = await axiosInstance.post(`${config.AUTH_URL}/login`, credentials);
-      console.log('Login response:', response);
+      //console.log('Login response:', response);
       
       // Return the response.data directly, which contains success, token, and user
       return response.data;
