@@ -337,9 +337,7 @@ function App() {
           />
            <Route path="/ledger" element={
     <ProtectedRoute>
-      <Layout>
         <Ledger />
-      </Layout>
     </ProtectedRoute>
   } />
 

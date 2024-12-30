@@ -21,11 +21,16 @@ const Ledger = () => {
   const [formData, setFormData] = useState({
     name: '',
     amount: '',
-    date: new Date().toISOString().split('T')[0] // Format: YYYY-MM-DD
+    date: new Date().toISOString().split('T')[0]
   });
   const [entries, setEntries] = useState([]);
   const [filterName, setFilterName] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  const calculateTotal = (entries) => {
+    return entries.reduce((sum, entry) => sum + Number(entry.amount), 0);
+  };
 
   const fetchEntries = async () => {
     try {
@@ -37,6 +42,7 @@ const Ledger = () => {
       
       const response = await api.getLedgerEntries(params);
       setEntries(response);
+      setTotalAmount(calculateTotal(response));
     } catch (error) {
       console.error('Error fetching entries:', error);
     }
@@ -81,126 +87,137 @@ const Ledger = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, backgroundColor: '#1A1F2D' }}>
-            <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
-              Add Ledger Entry
-            </Typography>
-            <Box component="form" onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                label="Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                sx={{ mb: 2 }}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Amount"
-                type="number"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                sx={{ mb: 2 }}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                sx={{ mb: 2 }}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                required
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                sx={{
-                  mt: 2,
-                  backgroundColor: '#FF9900',
-                  '&:hover': { backgroundColor: '#FF8C00' }
-                }}
-              >
-                Add Entry
-              </Button>
-            </Box>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, backgroundColor: '#1A1F2D' }}>
-            <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
-              Ledger Entries
-            </Typography>
-            
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12} md={4}>
+    <>
+      <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3, backgroundColor: '#1A1F2D' }}>
+              <Typography variant="h5" sx={{ mb: 3, color: 'white' }}>
+                Add Ledger Entry
+              </Typography>
+              <Box component="form" onSubmit={handleSubmit}>
                 <TextField
                   fullWidth
-                  label="Filter by Name"
-                  value={filterName}
-                  onChange={(e) => setFilterName(e.target.value)}
+                  label="Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  sx={{ mb: 2 }}
+                  required
                 />
-              </Grid>
-              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
-                  label="Filter by Date"
+                  label="Amount"
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  sx={{ mb: 2 }}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Date"
                   type="date"
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  sx={{ mb: 2 }}
                   InputLabelProps={{
                     shrink: true,
                   }}
+                  required
                 />
-              </Grid>
-              <Grid item xs={12} md={4}>
                 <Button
+                  type="submit"
                   variant="contained"
-                  onClick={exportToCSV}
+                  fullWidth
                   sx={{
+                    mt: 2,
                     backgroundColor: '#FF9900',
                     '&:hover': { backgroundColor: '#FF8C00' }
                   }}
                 >
-                  Export to CSV
+                  Add Entry
                 </Button>
-              </Grid>
-            </Grid>
+              </Box>
+            </Paper>
+          </Grid>
 
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Amount</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {entries.map((entry) => (
-                    <TableRow key={entry._id}>
-                      <TableCell sx={{ color: 'white' }}>{entry.name}</TableCell>
-                      <TableCell sx={{ color: 'white' }}>{entry.amount}</TableCell>
-                      <TableCell sx={{ color: 'white' }}>
-                        {new Date(entry.date).toLocaleDateString()}
-                      </TableCell>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3, backgroundColor: '#1A1F2D' }}>
+              <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                <Grid item>
+                  <Typography variant="h5" sx={{ color: 'white' }}>
+                    Ledger Entries
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <Typography variant="h6" sx={{ color: '#FF9900' }}>
+                    Total Amount: Rs {totalAmount.toFixed(2)}
+                  </Typography>
+                </Grid>
+              </Grid>
+              
+              <Grid container spacing={2} sx={{ mb: 3 }}>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Filter by Name"
+                    value={filterName}
+                    onChange={(e) => setFilterName(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Filter by Date"
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Button
+                    variant="contained"
+                    onClick={exportToCSV}
+                    sx={{
+                      backgroundColor: '#FF9900',
+                      '&:hover': { backgroundColor: '#FF8C00' }
+                    }}
+                  >
+                    Export to CSV
+                  </Button>
+                </Grid>
+              </Grid>
+
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ color: 'white' }}>Name</TableCell>
+                      <TableCell sx={{ color: 'white' }}>Amount</TableCell>
+                      <TableCell sx={{ color: 'white' }}>Date</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+                  </TableHead>
+                  <TableBody>
+                    {entries.map((entry) => (
+                      <TableRow key={entry._id}>
+                        <TableCell sx={{ color: 'white' }}>{entry.name}</TableCell>
+                        <TableCell sx={{ color: 'white' }}>Rs {Number(entry.amount).toFixed(2)}</TableCell>
+                        <TableCell sx={{ color: 'white' }}>
+                          {new Date(entry.date).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </>
   );
 };
 
