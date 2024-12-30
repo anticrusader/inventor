@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
+import { AuthProvider } from './contexts/AuthContext';
 import CssBaseline from '@mui/material/CssBaseline';
 import Header from './components/Layout/Header';
 import Login from './pages/Login';
@@ -34,6 +35,8 @@ import Reports from './pages/Reports';
 import Categories from './pages/Categories';
 import AddStone from './pages/AddStone';
 import AddVendor from './pages/AddVendor';
+import Layout from './components/Layout';
+import Ledger from './pages/Ledger';
 
 const theme = createTheme({
   palette: {
@@ -180,6 +183,7 @@ const PublicRoute = ({ children }) => {
 
 function App() {
   return (
+    <AuthProvider>  {/* Add this wrapper */} 
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
@@ -331,12 +335,20 @@ function App() {
               </ProtectedRoute>
             }
           />
+           <Route path="/ledger" element={
+    <ProtectedRoute>
+      <Layout>
+        <Ledger />
+      </Layout>
+    </ProtectedRoute>
+  } />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </ThemeProvider>
+    </AuthProvider>
   );
 }
 

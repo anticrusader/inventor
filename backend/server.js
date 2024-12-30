@@ -11,6 +11,7 @@ const productsRouter = require('./routes/products');
 const stonesRouter = require('./routes/stones');
 const vendorsRouter = require('./routes/vendors');
 const profileRouter = require('./routes/profile');
+const ledgerRoutes = require('./routes/ledger');
 
 // Import models
 require('./models/Product');
@@ -58,6 +59,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/stones', stonesRouter);
 app.use('/api/vendors', vendorsRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/ledger', ledgerRoutes);
 app.use('/api', (req, res, next) => {
   console.log('API request received:', {
     method: req.method,

@@ -243,6 +243,16 @@ const api = {
   generateSKU: (vendorId) => {
     return axios.post(`${API_URL}/products/generate-sku`, { vendorId });
   },
+    // Ledger methods
+    getLedgerEntries: async (params) => {
+      const response = await axiosInstance.get('/ledger', { params });
+      return response.data;
+    },
+    
+    addLedgerEntry: async (data) => {
+      const response = await axiosInstance.post('/ledger', data);
+      return response.data;
+    },
 };
 
 export default api;
