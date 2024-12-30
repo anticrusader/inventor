@@ -36,5 +36,40 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+// Update ledger entry
+router.put('/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updatedEntry = await Ledger.findByIdAndUpdate(
+        id,
+        req.body,
+        { new: true, runValidators: true }
+      );
+      
+      if (!updatedEntry) {
+        return res.status(404).json({ message: 'Ledger entry not found' });
+      }
+      
+      res.json(updatedEntry);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+  
+  // Delete ledger entry
+  router.delete('/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deletedEntry = await Ledger.findByIdAndDelete(id);
+      
+      if (!deletedEntry) {
+        return res.status(404).json({ message: 'Ledger entry not found' });
+      }
+      
+      res.json({ message: 'Ledger entry deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
 
 module.exports = router;

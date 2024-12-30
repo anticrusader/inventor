@@ -253,6 +253,24 @@ const api = {
       const response = await axiosInstance.post('/ledger', data);
       return response.data;
     },
+    updateLedgerEntry: async (id, data) => {
+      try {
+        const response = await axiosInstance.put(`/ledger/${id}`, data);
+        return response.data;
+      } catch (error) {
+        console.error('Error updating ledger entry:', error);
+        throw error;
+      }
+    },
+    deleteLedgerEntry: async (id) => {
+      try {
+        const response = await axiosInstance.delete(`/ledger/${id}`);
+        return response.data;
+      } catch (error) {
+        console.error('Error deleting ledger entry:', error);
+        throw error;
+      }
+    },
 };
 
 export default api;
