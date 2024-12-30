@@ -17,6 +17,7 @@ const productRoutes = require('./routes/products');
 const categoryRoutes = require('./routes/categories');
 const stoneRoutes = require('./routes/stones');
 const vendorRoutes = require('./routes/vendors');
+const ledgerRoutes = require('./routes/ledger');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/stones', stoneRoutes);
 app.use('/api/vendors', vendorRoutes);
+app.use('/api/ledger', ledgerRoutes);
 
 // Connect to MongoDB with detailed logging
 console.log('Attempting to connect to MongoDB...');

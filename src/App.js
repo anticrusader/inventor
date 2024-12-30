@@ -35,6 +35,9 @@ import Categories from './pages/Categories';
 import AddStone from './pages/AddStone';
 import AddVendor from './pages/AddVendor';
 import ResetPassword from './pages/ResetPassword';
+import Layout from './components/Layout';
+import Ledger from './pages/Ledger';
+import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -181,6 +184,7 @@ const PublicRoute = ({ children }) => {
 
 function App() {
   return (
+    <AuthProvider>  {/* Add this wrapper */}
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
@@ -333,12 +337,17 @@ function App() {
               </ProtectedRoute>
             }
           />
-
+           <Route path="/ledger" element={
+    <ProtectedRoute>
+        <Ledger />
+    </ProtectedRoute>
+  } />
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     </ThemeProvider>
+    </AuthProvider>
   );
 }
 

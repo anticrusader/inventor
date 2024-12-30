@@ -29,6 +29,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
 import logo from '../../assets/logo.png';
+import ArticleIcon from '@mui/icons-material/Article';
 
 const Header = () => {
   const location = useLocation();
@@ -100,12 +101,9 @@ const Header = () => {
       ],
     },
     {
-      label: 'Orders',
-      path: '/orders',
-      icon: <ShoppingCartIcon />,
-      subItems: [
-        { label: 'Add Order', path: '/add-order' },
-      ],
+      label: 'Ledger',
+      path: '/ledger',
+      icon: <ArticleIcon />,
     },
     {
       label: 'Stores',
