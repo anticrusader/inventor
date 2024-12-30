@@ -1,16 +1,13 @@
 import axios from 'axios';
-import config from '../config';
 
-const API_URL = config.API_URL;
+const API_URL = 'http://localhost:5001/api';
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 30000,
-  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    'Content-Type': 'application/json'
   }
 });
 
@@ -49,7 +46,9 @@ axiosInstance.interceptors.response.use(
 // Test the server connection
 const testConnection = async () => {
   try {
-    const response = await axiosInstance.get('/test');
+    const response = await axios.get('http://localhost:5001/test', { 
+      withCredentials: true 
+    });
     console.log('Server test successful:', response.data);
     return true;
   } catch (error) {
@@ -68,26 +67,17 @@ const api = {
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
-    const response = await axiosInstance.get('/dashboard/stats');
-    return response.data;
+    return axiosInstance.get('/dashboard/stats');
   },
   
   // Products
-  getProducts: async () => {
-    const isConnected = await testConnection();
-    if (!isConnected) {
-      throw new Error('Cannot connect to server. Please check if the server is running.');
-    }
-    const response = await axiosInstance.get('/products');
-    return response.data;
-  },
+  getProducts: () => axiosInstance.get('/products'),
   getProduct: async (id) => {
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
-    const response = await axiosInstance.get(`/products/${id}`);
-    return response.data;
+    return axiosInstance.get(`/products/${id}`);
   },
   addProduct: async (formData) => {
     const isConnected = await testConnection();
@@ -102,8 +92,7 @@ const api = {
       timeout: 45000
     };
     
-    const response = await axiosInstance.post('/products', formData, config);
-    return response.data;
+    return axiosInstance.post('/products', formData, config);
   },
   updateProduct: async (id, formData) => {
     const isConnected = await testConnection();
@@ -118,16 +107,14 @@ const api = {
       timeout: 45000
     };
 
-    const response = await axiosInstance.patch(`/products/${id}`, formData, config);
-    return response.data;
+    return axiosInstance.put(`/products/${id}`, formData, config);
   },
   deleteProduct: async (id) => {
     const isConnected = await testConnection();
     if (!isConnected) {
       throw new Error('Cannot connect to server. Please check if the server is running.');
     }
-    const response = await axiosInstance.delete(`/products/${id}`);
-    return response.data;
+    return axiosInstance.delete(`/products/${id}`);
   },
 
   // Categories
@@ -256,16 +243,34 @@ const api = {
   generateSKU: (vendorId) => {
     return axios.post(`${API_URL}/products/generate-sku`, { vendorId });
   },
-  // Ledger methods
-  getLedgerEntries: async (params) => {
-    const response = await axiosInstance.get('/ledger', { params });
-    return response.data;
-  },
-  
-  addLedgerEntry: async (data) => {
-    const response = await axiosInstance.post('/ledger', data);
-    return response.data;
-  },
+    // Ledger methods
+    getLedgerEntries: async (params) => {
+      const response = await axiosInstance.get('/ledger', { params });
+      return response.data;
+    },
+    
+    addLedgerEntry: async (data) => {
+      const response = await axiosInstance.post('/ledger', data);
+      return response.data;
+    },
+    updateLedgerEntry: async (id, data) => {
+      try {
+        const response = await axiosInstance.put(`/ledger/${id}`, data);
+        return response.data;
+      } catch (error) {
+        console.error('Error updating ledger entry:', error);
+        throw error;
+      }
+    },
+    deleteLedgerEntry: async (id) => {
+      try {
+        const response = await axiosInstance.delete(`/ledger/${id}`);
+        return response.data;
+      } catch (error) {
+        console.error('Error deleting ledger entry:', error);
+        throw error;
+      }
+    },
 };
 
 export default api;
