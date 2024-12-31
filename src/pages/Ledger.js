@@ -198,7 +198,7 @@ const getColumns = () => {
     {
       field: 'date',
       headerName: 'Date',
-      flex: 1,
+      width: 150, // Fixed width instead of flex
       fixed: 'left'
     }
   ];
@@ -222,7 +222,7 @@ const getColumns = () => {
     columns.push({
       field: nameMapping[normalizedName],
       headerName: nameMapping[normalizedName],
-      flex: 1,
+      width: 200, // Fixed width instead of flex
       renderCell: (params) => params.value ? `Rs ${Number(params.value).toFixed(2)}` : '-'
     });
   });
@@ -355,8 +355,31 @@ const getColumns = () => {
   </Grid>
               </Grid>
 
-              <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
-  <Table stickyHeader>
+              <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto',
+    '& .MuiTable-root': {
+      width:'max-content',
+      minWidth: '100%', // Minimum width to ensure scrolling
+    } }}>
+  <Table 
+    stickyHeader 
+    sx={{
+      tableLayout: 'fixed',
+      '& th, & td': {
+        minWidth: '200px',  // Minimum width for all cells
+        width: '200px',     // Fixed width for all cells
+        boxSizing: 'border-box',
+        whiteSpace: 'nowrap'
+      },
+      '& th:first-of-type, & td:first-of-type': {
+        position: 'sticky',
+        left: 0,
+        zIndex: 1,
+        minWidth: '150px',  // Smaller width for date column
+        width: '150px',
+        backgroundColor: '#1A1F2D'
+      }
+    }}
+  >
     <TableHead>
       <TableRow>
         {transformedView ? (
