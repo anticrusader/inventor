@@ -142,20 +142,26 @@ const [transformedData, setTransformedData] = useState([]);
     // Declare dateGroups object
   const dateGroups = {};
   const uniqueNames = new Set();
+  const nameMapping = {}; // To preserve original name casing
     
     const nameGroups = {};
     entries.forEach(entry => {
       const date = new Date(entry.date).toLocaleDateString();
+      const normalizedName = entry.name.toLowerCase().trim(); // Normalize the name
+      // Store original name casing
+    if (!nameMapping[normalizedName]) {
+      nameMapping[normalizedName] = entry.name;
+    }
       if (!dateGroups[date]) {
         dateGroups[date] = {};
       }
-      uniqueNames.add(entry.name);
+      uniqueNames.add(normalizedName);
       //dateGroups[date][entry.name] = entry.amount;
       // Add amounts for same name on same date
-    if (dateGroups[date][entry.name]) {
-      dateGroups[date][entry.name] += Number(entry.amount);
+    if (dateGroups[date][normalizedName]) {
+      dateGroups[date][normalizedName] += Number(entry.amount);
     } else {
-      dateGroups[date][entry.name] = Number(entry.amount);
+      dateGroups[date][normalizedName] = Number(entry.amount);
     }
     });
 
@@ -164,8 +170,9 @@ const [transformedData, setTransformedData] = useState([]);
   .sort((a, b) => new Date(b) - new Date(a))
   .map(date => {
     const row = { date };
-    Array.from(uniqueNames).forEach(name => {
-      row[name] = dateGroups[date][name] || null;
+    Array.from(uniqueNames).forEach(normalizedName => {
+      const originalName = nameMapping[normalizedName];
+      row[originalName] = dateGroups[date][normalizedName] || null;
     });
     return row;
   });
@@ -195,11 +202,26 @@ const getColumns = () => {
       fixed: 'left'
     }
   ];
-  const uniqueNames = [...new Set(entries.map(item => item.name))];
-  uniqueNames.forEach(name => {
+
+  // Get unique names with case-insensitive comparison
+  const uniqueNormalizedNames = new Set(
+    entries.map(item => item.name.toLowerCase().trim())
+  );
+
+  // Use the first occurrence's casing for display
+  const nameMapping = {};
+  entries.forEach(entry => {
+    const normalizedName = entry.name.toLowerCase().trim();
+    if (!nameMapping[normalizedName]) {
+      nameMapping[normalizedName] = entry.name;
+    }
+  });
+
+  // Create columns using the first occurrence's casing
+  Array.from(uniqueNormalizedNames).forEach(normalizedName => {
     columns.push({
-      field: name,
-      headerName: name,
+      field: nameMapping[normalizedName],
+      headerName: nameMapping[normalizedName],
       flex: 1,
       renderCell: (params) => params.value ? `Rs ${Number(params.value).toFixed(2)}` : '-'
     });
