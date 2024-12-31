@@ -17,8 +17,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  message,
 } from '@mui/material';
 import api from '../services/api';
+
 
 const Ledger = () => {
   const [formData, setFormData] = useState({
@@ -32,26 +34,13 @@ const Ledger = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [editDialog, setEditDialog] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+  const [transformedView, setTransformedView] = useState(false);
+const [transformedData, setTransformedData] = useState([]);
 
   const calculateTotal = (entries) => {
     return entries.reduce((sum, entry) => sum + Number(entry.amount), 0);
   };
 
-  const fetchEntries = async () => {
-    try {
-      let url = '/ledger';
-      const params = new URLSearchParams();
-      if (filterName) params.append('name', filterName);
-      if (filterDate) params.append('date', filterDate);
-      if (params.toString()) url += `?${params.toString()}`;
-      
-      const response = await api.getLedgerEntries(params);
-      setEntries(response);
-      setTotalAmount(calculateTotal(response));
-    } catch (error) {
-      console.error('Error fetching entries:', error);
-    }
-  };
 
   useEffect(() => {
     fetchEntries();
@@ -129,6 +118,96 @@ const Ledger = () => {
       }
     }
   };
+
+  const fetchEntries = async () => {
+    try {
+      let url = '/ledger';
+      const params = new URLSearchParams();
+      if (filterName) params.append('name', filterName);
+      if (filterDate) params.append('date', filterDate);
+      if (params.toString()) url += `?${params.toString()}`;
+      
+      const response = await api.getLedgerEntries(params);
+      // Make sure we're setting the data from response.data
+      setEntries(response.data || []); // Add fallback empty array
+      setTotalAmount(calculateTotal(response.data || []));
+    } catch (error) {
+      console.error('Error fetching entries:', error);
+      setEntries([]); // Set empty array on error
+    }
+  };
+  const transformData = () => {
+    // Group by name and create columns
+    if (!entries || !Array.isArray(entries)) return; // Add safety check
+    // Declare dateGroups object
+  const dateGroups = {};
+  const uniqueNames = new Set();
+    
+    const nameGroups = {};
+    entries.forEach(entry => {
+      const date = new Date(entry.date).toLocaleDateString();
+      if (!dateGroups[date]) {
+        dateGroups[date] = {};
+      }
+      uniqueNames.add(entry.name);
+      //dateGroups[date][entry.name] = entry.amount;
+      // Add amounts for same name on same date
+    if (dateGroups[date][entry.name]) {
+      dateGroups[date][entry.name] += Number(entry.amount);
+    } else {
+      dateGroups[date][entry.name] = Number(entry.amount);
+    }
+    });
+
+    // Create transformed data structure
+  const transformed = Object.keys(dateGroups)
+  .sort((a, b) => new Date(b) - new Date(a))
+  .map(date => {
+    const row = { date };
+    Array.from(uniqueNames).forEach(name => {
+      row[name] = dateGroups[date][name] || null;
+    });
+    return row;
+  });
+
+setTransformedData(transformed);
+setTransformedView(true);
+};
+
+const getColumns = () => {
+  if (!transformedView) {
+    return [
+      { field: 'name', headerName: 'Name', flex: 1 },
+      { field: 'amount', headerName: 'Amount', flex: 1 },
+      { field: 'date', headerName: 'Date', flex: 1 },
+      { field: 'actions', headerName: 'Actions', flex: 1 }
+    ];
+  }
+
+  if (!entries || !Array.isArray(entries)) return [];
+
+  // Create date column first
+  const columns = [
+    {
+      field: 'date',
+      headerName: 'Date',
+      flex: 1,
+      fixed: 'left'
+    }
+  ];
+  const uniqueNames = [...new Set(entries.map(item => item.name))];
+  uniqueNames.forEach(name => {
+    columns.push({
+      field: name,
+      headerName: name,
+      flex: 1,
+      renderCell: (params) => params.value ? `Rs ${Number(params.value).toFixed(2)}` : '-'
+    });
+  });
+
+  return columns;
+};
+
 
   return (
     <>
@@ -233,45 +312,102 @@ const Ledger = () => {
                     Export to CSV
                   </Button>
                 </Grid>
+                <Grid item xs={12} md={4}>
+    <Button
+      variant="contained"
+      onClick={() => {
+        if (transformedView) {
+          setTransformedView(false);
+        } else {
+          transformData();
+        }
+      }}
+      sx={{
+        backgroundColor: '#FF9900',
+        '&:hover': { backgroundColor: '#FF8C00' },
+        ml: 2
+      }}
+    >
+      {transformedView ? 'Normal View' : 'Transform View'}
+    </Button>
+  </Grid>
               </Grid>
 
-              <TableContainer>
-                <Table>
-                <TableHead>
-  <TableRow>
-    <TableCell sx={{ color: 'white' }}>Name</TableCell>
-    <TableCell sx={{ color: 'white' }}>Amount</TableCell>
-    <TableCell sx={{ color: 'white' }}>Date</TableCell>
-    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
-  </TableRow>
-</TableHead>
-<TableBody>
-  {entries.map((entry) => (
-    <TableRow key={entry._id}>
-      <TableCell sx={{ color: 'white' }}>{entry.name}</TableCell>
-      <TableCell sx={{ color: 'white' }}>Rs {Number(entry.amount).toFixed(2)}</TableCell>
-      <TableCell sx={{ color: 'white' }}>
-        {new Date(entry.date).toLocaleDateString()}
-      </TableCell>
-      <TableCell>
-        <IconButton 
-          onClick={() => handleEdit(entry)}
-          sx={{ color: '#FF9900', mr: 1 }}
-        >
-          <EditIcon />
-        </IconButton>
-        <IconButton 
-          onClick={() => handleDelete(entry._id)}
-          sx={{ color: '#FF9900' }}
-        >
-          <DeleteIcon />
-        </IconButton>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-                </Table>
-              </TableContainer>
+              <TableContainer sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+  <Table stickyHeader>
+    <TableHead>
+      <TableRow>
+        {transformedView ? (
+          getColumns().map((column, index) => (
+            <TableCell key={index} sx={{ 
+              color: 'white',
+              position: column.fixed === 'left' ? 'sticky' : 'static',
+              left: column.fixed === 'left' ? 0 : 'auto',
+              zIndex: column.fixed === 'left' ? 2 : 1,
+              backgroundColor: '#1A1F2D'
+            }}>
+              {column.headerName}
+            </TableCell>
+          ))
+        ) : (
+          <>
+            <TableCell sx={{ color: 'white' }}>Name</TableCell>
+            <TableCell sx={{ color: 'white' }}>Amount</TableCell>
+            <TableCell sx={{ color: 'white' }}>Date</TableCell>
+            <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+          </>
+        )}
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {transformedView ? (
+        transformedData.map((row, index) => (
+          <TableRow key={index}>
+            {getColumns().map((column, colIndex) => (
+              <TableCell key={colIndex} sx={{ 
+                color: 'white',
+                position: column.fixed === 'left' ? 'sticky' : 'static',
+                left: column.fixed === 'left' ? 0 : 'auto',
+                backgroundColor: '#1A1F2D'
+              }}>
+                {column.field === 'date' ? 
+                  row[column.field] : 
+                  (column.renderCell ? 
+                    column.renderCell({ value: row[column.field] }) : 
+                    row[column.field] || '-')}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))
+      ) : (
+        entries.map((entry) => (
+          // Your existing normal view row rendering
+          <TableRow key={entry._id}>
+            <TableCell sx={{ color: 'white' }}>{entry.name}</TableCell>
+            <TableCell sx={{ color: 'white' }}>Rs {Number(entry.amount).toFixed(2)}</TableCell>
+            <TableCell sx={{ color: 'white' }}>
+              {new Date(entry.date).toLocaleDateString()}
+            </TableCell>
+            <TableCell>
+              <IconButton 
+                onClick={() => handleEdit(entry)}
+                sx={{ color: '#FF9900', mr: 1 }}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton 
+                onClick={() => handleDelete(entry._id)}
+                sx={{ color: '#FF9900' }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        ))
+      )}
+    </TableBody>
+  </Table>
+</TableContainer>
             </Paper>
           </Grid>
         </Grid>
