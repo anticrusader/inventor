@@ -271,6 +271,9 @@ const api = {
         throw error;
       }
     },
+    getLedgerEntries: () => axiosInstance.get('/ledger'),
+addLedgerEntry: (entry) => axiosInstance.post('/ledger', entry),
+transformLedgerData: () => axiosInstance.get('/ledger/transform'),
 };
 
 export default api;
